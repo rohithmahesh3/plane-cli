@@ -66,7 +66,7 @@ func init() {
 	AuthCmd.AddCommand(whoamiCmd)
 
 	loginCmd.Flags().StringVar(&token, "token", "", "API key (will prompt if not provided)")
-	loginCmd.Flags().StringVar(&apiHost, "api-host", config.DefaultAPIHost, "Plane API host URL")
+	loginCmd.Flags().StringVar(&apiHost, "api-host", "", "Plane API host URL (will prompt if not provided)")
 	loginCmd.Flags().StringVar(&workspace, "workspace", "", "Default workspace slug")
 }
 
