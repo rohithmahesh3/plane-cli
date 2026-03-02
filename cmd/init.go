@@ -391,7 +391,9 @@ func handleGitignore() error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 
 	if len(content) > 0 && content[len(content)-1] != '\n' {
 		if _, err := f.WriteString("\n"); err != nil {
