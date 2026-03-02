@@ -64,7 +64,7 @@ func (c *Client) ResolveAssignees(projectID string, assignees []string) ([]strin
 					message.WriteString(FormatWorkspaceMemberSuggestion(suggestion))
 				}
 			}
-			_, _ = fmt.Fprintf(&message, "\nRun: plane workspace members --search %s", username)
+			_, _ = fmt.Fprintf(&message, "\nRun: plane-cli workspace members --search %s", username)
 
 			return nil, fmt.Errorf("%s", message.String())
 		}
@@ -102,7 +102,7 @@ func (c *Client) ResolveLabels(projectID string, labels []string) ([]string, err
 		}
 
 		if !found {
-			return nil, fmt.Errorf("label '%s' not found in project. Create it first with 'plane label create'", l)
+			return nil, fmt.Errorf("label '%s' not found in project. Create it first with 'plane-cli label create'", l)
 		}
 	}
 

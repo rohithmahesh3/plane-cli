@@ -43,7 +43,7 @@ type Response struct {
 func NewClient() (*Client, error) {
 	apiKey, err := config.GetAPIKey()
 	if err != nil {
-		return nil, fmt.Errorf("not authenticated. Run 'plane auth login' first")
+		return nil, fmt.Errorf("not authenticated. Run 'plane-cli auth login' first")
 	}
 
 	workspace := config.Cfg.DefaultWorkspace

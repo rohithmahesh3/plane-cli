@@ -44,7 +44,7 @@ brew install plane-cli
 ### 1. Authenticate
 
 ```bash
-plane auth login
+plane-cli auth login
 ```
 
 You'll need an API key from Plane:
@@ -56,19 +56,19 @@ You'll need an API key from Plane:
 ### 2. Check Workspace Access
 
 ```bash
-plane workspace info
+plane-cli workspace info
 ```
 
 ### 3. List Projects
 
 ```bash
-plane project list
+plane-cli project list
 ```
 
 ### 4. List Issues
 
 ```bash
-plane issue list
+plane-cli issue list
 ```
 
 ## Configuration
@@ -95,236 +95,236 @@ api_host: https://api.plane.so
 
 ```bash
 # Interactive login
-plane auth login
+plane-cli auth login
 
 # Login with flags
-plane auth login --token YOUR_API_KEY --workspace my-workspace
+plane-cli auth login --token YOUR_API_KEY --workspace my-workspace
 
 # Check authentication status
-plane auth status
+plane-cli auth status
 
 # Logout
-plane auth logout
+plane-cli auth logout
 ```
 
 ### Workspaces
 
 ```bash
 # Show workspace details
-plane workspace info
+plane-cli workspace info
 
 # Switch default workspace
-plane workspace switch my-workspace
+plane-cli workspace switch my-workspace
 
 # List workspace members
-plane workspace members
+plane-cli workspace members
 
 # Search workspace members before assigning issues
-plane workspace members --search roh
+plane-cli workspace members --search roh
 ```
 
 ### Projects
 
 ```bash
 # List projects
-plane project list
+plane-cli project list
 
 # Create a new project
-plane project create
+plane-cli project create
 
 # View project details
-plane project info PROJECT_ID
+plane-cli project info PROJECT_ID
 
 # Delete a project
-plane project delete PROJECT_ID
+plane-cli project delete PROJECT_ID
 
 # List project members
-plane project members PROJECT_ID
+plane-cli project members PROJECT_ID
 ```
 
 ### Issues (Work Items)
 
 ```bash
 # List issues
-plane issue list
+plane-cli issue list
 
 # List with filters
-plane issue list --state backlog
-plane issue list --assignee @alice
+plane-cli issue list --state backlog
+plane-cli issue list --assignee @alice
 
 # View issue details (supports sequence ID or UUID)
-plane issue view 123
-plane issue view uuid-here
+plane-cli issue view 123
+plane-cli issue view uuid-here
 
 # Create an issue
-plane issue create --title "Bug fix" --priority high
-plane issue create -t "Feature request" -d "Description" -p medium -a @bob
+plane-cli issue create --title "Bug fix" --priority high
+plane-cli issue create -t "Feature request" -d "Description" -p medium -a @bob
 
 # Edit an issue
-plane issue edit 123 --state done
-plane issue edit 123 --priority urgent --assignee @alice
-plane issue edit 123 --assignee @bob --label bug,urgent
+plane-cli issue edit 123 --state done
+plane-cli issue edit 123 --priority urgent --assignee @alice
+plane-cli issue edit 123 --assignee @bob --label bug,urgent
 
 # Delete an issue
-plane issue delete 123
+plane-cli issue delete 123
 
 # Search issues across workspace
-plane issue search "login bug"
+plane-cli issue search "login bug"
 ```
 
 ### Issue Comments
 
 ```bash
 # List comments on an issue
-plane issue comment list 123
+plane-cli issue comment list 123
 
 # Add a comment
-plane issue comment add 123 --text "Fixed in PR #42"
-plane issue comment add 123 --text "Customer feedback" --access EXTERNAL
+plane-cli issue comment add 123 --text "Fixed in PR #42"
+plane-cli issue comment add 123 --text "Customer feedback" --access EXTERNAL
 
 # Delete a comment
-plane issue comment delete 123 COMMENT_ID
+plane-cli issue comment delete 123 COMMENT_ID
 ```
 
 ### Issue Time Tracking
 
 ```bash
 # List time logs
-plane issue time list 123
+plane-cli issue time list 123
 
 # Log time (supports multiple formats)
-plane issue time log 123 2h30m --description "Fixed the bug"
-plane issue time log 123 90 --description "Code review"
+plane-cli issue time log 123 2h30m --description "Fixed the bug"
+plane-cli issue time log 123 90 --description "Code review"
 
 # Show total time logged
-plane issue time total 123
+plane-cli issue time total 123
 
 # Edit a time log
-plane issue time edit 123 WORKLOG_ID --duration 3h
+plane-cli issue time edit 123 WORKLOG_ID --duration 3h
 
 # Delete a time log
-plane issue time delete 123 WORKLOG_ID
+plane-cli issue time delete 123 WORKLOG_ID
 ```
 
 ### Issue Links
 
 ```bash
 # List links on an issue
-plane issue link list 123
+plane-cli issue link list 123
 
 # Add a link
-plane issue link add 123 https://github.com/repo/pull/42 --title "Related PR"
+plane-cli issue link add 123 https://github.com/repo/pull/42 --title "Related PR"
 
 # Delete a link
-plane issue link delete 123 LINK_ID
+plane-cli issue link delete 123 LINK_ID
 ```
 
 ### Issue Attachments
 
 ```bash
 # List attachments
-plane issue attachment list 123
+plane-cli issue attachment list 123
 
 # Upload a file
-plane issue attachment upload 123 ./screenshot.png
+plane-cli issue attachment upload 123 ./screenshot.png
 
 # Edit attachment metadata
-plane issue attachment edit 123 ATTACHMENT_ID --name "new-name.png"
+plane-cli issue attachment edit 123 ATTACHMENT_ID --name "new-name.png"
 
 # Archive/unarchive
-plane issue attachment edit 123 ATTACHMENT_ID --archive
+plane-cli issue attachment edit 123 ATTACHMENT_ID --archive
 
 # Delete an attachment
-plane issue attachment delete 123 ATTACHMENT_ID
+plane-cli issue attachment delete 123 ATTACHMENT_ID
 ```
 
 ### Issue Activity History
 
 ```bash
 # List activity history
-plane issue activity list 123
+plane-cli issue activity list 123
 
 # View specific activity details
-plane issue activity view 123 ACTIVITY_ID
+plane-cli issue activity view 123 ACTIVITY_ID
 ```
 
 ### Cycles (Sprints)
 
 ```bash
 # List cycles
-plane cycle list
+plane-cli cycle list
 
 # List including archived
-plane cycle list --archived
+plane-cli cycle list --archived
 
 # View cycle details
-plane cycle view CYCLE_ID
+plane-cli cycle view CYCLE_ID
 
 # Create a cycle
-plane cycle create --name "Sprint 1" --start-date 2024-01-01 --end-date 2024-01-14
+plane-cli cycle create --name "Sprint 1" --start-date 2024-01-01 --end-date 2024-01-14
 
 # Edit a cycle
-plane cycle edit CYCLE_ID --name "Sprint 1 (Revised)"
+plane-cli cycle edit CYCLE_ID --name "Sprint 1 (Revised)"
 
 # Delete a cycle
-plane cycle delete CYCLE_ID
+plane-cli cycle delete CYCLE_ID
 
 # Archive
-plane cycle archive CYCLE_ID
+plane-cli cycle archive CYCLE_ID
 
 # List issues in a cycle
-plane cycle issues CYCLE_ID
+plane-cli cycle issues CYCLE_ID
 
 # Add issues to a cycle
-plane cycle add-issues CYCLE_ID ISSUE_ID_1 ISSUE_ID_2
+plane-cli cycle add-issues CYCLE_ID ISSUE_ID_1 ISSUE_ID_2
 
 # Remove an issue from a cycle
-plane cycle remove-issue CYCLE_ID ISSUE_ID
+plane-cli cycle remove-issue CYCLE_ID ISSUE_ID
 ```
 
 ### Modules
 
 ```bash
 # List modules
-plane module list
+plane-cli module list
 
 # List including archived
-plane module list --archived
+plane-cli module list --archived
 
 # View module details
-plane module view MODULE_ID
+plane-cli module view MODULE_ID
 
 # Create a module
-plane module create --name "Authentication" --description "Auth features" --status in-progress
+plane-cli module create --name "Authentication" --description "Auth features" --status in-progress
 
 # Edit a module
-plane module edit MODULE_ID --status completed
+plane-cli module edit MODULE_ID --status completed
 
 # Delete a module
-plane module delete MODULE_ID
+plane-cli module delete MODULE_ID
 
 # Archive
-plane module archive MODULE_ID
+plane-cli module archive MODULE_ID
 
 # List issues in a module
-plane module issues MODULE_ID
+plane-cli module issues MODULE_ID
 
 # Add issues to a module
-plane module add-issues MODULE_ID ISSUE_ID_1 ISSUE_ID_2
+plane-cli module add-issues MODULE_ID ISSUE_ID_1 ISSUE_ID_2
 
 # Remove an issue from a module
-plane module remove-issue MODULE_ID ISSUE_ID
+plane-cli module remove-issue MODULE_ID ISSUE_ID
 ```
 
 ### Pages (Documentation)
 
 ```bash
 # View page details
-plane page view PAGE_ID
+plane-cli page view PAGE_ID
 
 # Create a page
-plane page create --name "API Documentation"
-plane page create --name "Team Guidelines" --workspace
+plane-cli page create --name "API Documentation"
+plane-cli page create --name "Team Guidelines" --workspace
 
 ```
 
@@ -332,77 +332,77 @@ plane page create --name "Team Guidelines" --workspace
 
 ```bash
 # List states
-plane state list
+plane-cli state list
 
 # View state details
-plane state view STATE_ID
+plane-cli state view STATE_ID
 
 # Create a state
-plane state create --name "In Review" --color "#F59E0B" --group started
+plane-cli state create --name "In Review" --color "#F59E0B" --group started
 
 # Edit a state
-plane state edit STATE_ID --name "Code Review"
+plane-cli state edit STATE_ID --name "Code Review"
 
 # Delete a state
-plane state delete STATE_ID
+plane-cli state delete STATE_ID
 ```
 
 ### Labels
 
 ```bash
 # List labels
-plane label list
+plane-cli label list
 
 # View label details
-plane label view LABEL_ID
+plane-cli label view LABEL_ID
 
 # Create a label
-plane label create --name "Bug" --color "#EF4444" --description "Something is broken"
+plane-cli label create --name "Bug" --color "#EF4444" --description "Something is broken"
 
 # Edit a label
-plane label edit LABEL_ID --color "#3B82F6"
+plane-cli label edit LABEL_ID --color "#3B82F6"
 
 # Delete a label
-plane label delete LABEL_ID
+plane-cli label delete LABEL_ID
 ```
 
 ### Epics
 
 ```bash
 # List epics
-plane epic list
+plane-cli epic list
 
 # View epic details
-plane epic view EPIC_ID
+plane-cli epic view EPIC_ID
 ```
 
 ### Intake (Inbox)
 
 ```bash
 # List intake issues
-plane intake list
+plane-cli intake list
 
 # View intake issue
-plane intake view INTAKE_ID
+plane-cli intake view INTAKE_ID
 
 # Create an intake issue
-plane intake create --name "Feature Request" --priority high
+plane-cli intake create --name "Feature Request" --priority high
 
 # Delete an intake issue
-plane intake delete INTAKE_ID
+plane-cli intake delete INTAKE_ID
 ```
 
 ### Issue Types
 
 ```bash
 # List issue types
-plane type list
+plane-cli type list
 
 # Create an issue type
-plane type create --name "Bug" --description "Bug reports"
+plane-cli type create --name "Bug" --description "Bug reports"
 
 # Delete an issue type
-plane type delete TYPE_ID
+plane-cli type delete TYPE_ID
 ```
 
 ### AI Context Generation
@@ -411,29 +411,29 @@ Generate CLI command reference for AI agents:
 
 ```bash
 # Default modules (issue, module, page, state, label, intake, type)
-plane context
+plane-cli context
 
 # Include additional modules
-plane context --cycle
-plane context --epic
-plane context --project
-plane context --workspace
+plane-cli context --cycle
+plane-cli context --epic
+plane-cli context --project
+plane-cli context --workspace
 
 # Include all modules
-plane context --all
+plane-cli context --all
 ```
 
 ### Output Formats
 
 ```bash
 # JSON output
-plane issue list --output json
+plane-cli issue list --output json
 
 # YAML output
-plane project list -o yaml
+plane-cli project list -o yaml
 
 # No colors
-plane issue list --no-color
+plane-cli issue list --no-color
 ```
 
 ## Shell Completion
@@ -455,15 +455,15 @@ source <(plane completion zsh)
 ### Fish
 
 ```bash
-plane completion fish | source
+plane-cli completion fish | source
 # Save for persistence:
-plane completion fish > ~/.config/fish/completions/plane.fish
+plane-cli completion fish > ~/.config/fish/completions/plane.fish
 ```
 
 ### PowerShell
 
 ```powershell
-plane completion powershell | Out-String | Invoke-Expression
+plane-cli completion powershell | Out-String | Invoke-Expression
 ```
 
 ## API Support

@@ -38,9 +38,9 @@ var listCmd = &cobra.Command{
 	Long: `List issues in the current project.
 
 Examples:
-  plane issue list
-  plane issue list --state backlog
-  plane issue list --assignee @alice`,
+  plane-cli issue list
+  plane-cli issue list --state backlog
+  plane-cli issue list --assignee @alice`,
 	RunE: runList,
 }
 
@@ -58,8 +58,8 @@ var createCmd = &cobra.Command{
 	Long: `Create a new issue in the current project.
 
 Examples:
-  plane issue create --title "Bug fix" --priority high
-  plane issue create -t "Feature request" -d "Description here"`,
+  plane-cli issue create --title "Bug fix" --priority high
+  plane-cli issue create -t "Feature request" -d "Description here"`,
 	RunE: runCreate,
 }
 

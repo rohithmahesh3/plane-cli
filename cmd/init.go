@@ -38,11 +38,11 @@ workspace and project settings, allowing you to use plane commands without
 specifying --workspace and --project flags.
 
 Examples:
-  plane init                                    # Interactive setup
-  plane init --workspace my-ws                  # Use specific workspace
-  plane init --workspace my-ws --project FRONT  # Use existing project
-  plane init --workspace my-ws --create-project --project-name "New App"
-  plane init --upgrade                          # Update existing settings`,
+  plane-cli init                                    # Interactive setup
+  plane-cli init --workspace my-ws                  # Use specific workspace
+  plane-cli init --workspace my-ws --project FRONT  # Use existing project
+  plane-cli init --workspace my-ws --create-project --project-name "New App"
+  plane-cli init --upgrade                          # Update existing settings`,
 	RunE: runInit,
 }
 
@@ -60,7 +60,7 @@ func init() {
 func runInit(cmd *cobra.Command, args []string) error {
 	apiKey, err := config.GetAPIKey()
 	if err != nil || apiKey == "" {
-		return fmt.Errorf("not authenticated. Run 'plane auth login' first")
+		return fmt.Errorf("not authenticated. Run 'plane-cli auth login' first")
 	}
 
 	if err := config.InitConfig(); err != nil {
@@ -341,7 +341,7 @@ func resolveProjectID(projectIDOrIdentifier string, projects []plane.Project) (s
 		}
 	}
 
-	return "", fmt.Errorf("project '%s' not found. Use 'plane project list' to see available projects", projectIDOrIdentifier)
+	return "", fmt.Errorf("project '%s' not found. Use 'plane-cli project list' to see available projects", projectIDOrIdentifier)
 }
 
 func createSettingsFile(workspace, projectID, defaultAssignee, settingsPath string) error {
@@ -432,9 +432,9 @@ func handleGitignore() error {
 func printSuccessMessage() {
 	fmt.Println()
 	output.Info("You can now use plane commands without specifying workspace/project:")
-	fmt.Println("  plane issue list")
-	fmt.Println("  plane cycle list")
-	fmt.Println("  plane module list")
+	fmt.Println("  plane-cli issue list")
+	fmt.Println("  plane-cli cycle list")
+	fmt.Println("  plane-cli module list")
 }
 
 func selectDefaultAssignee(members []plane.User) (string, error) {

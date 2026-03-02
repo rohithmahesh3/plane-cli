@@ -58,8 +58,8 @@ Duration formats:
   - Hours and minutes: 2h30m, 1h45m
 
 Examples:
-  plane issue time log ISS-123 2h30m
-  plane issue time log ISS-123 90 -d "Fixed the bug"`,
+  plane-cli issue time log ISS-123 2h30m
+  plane-cli issue time log ISS-123 90 -d "Fixed the bug"`,
 		Args: cobra.RangeArgs(2, 2),
 		RunE: runTimeLog,
 	}

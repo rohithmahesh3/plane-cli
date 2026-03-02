@@ -77,53 +77,53 @@ func getGlobalFlags() string {
 func getIssueCommands() string {
 	return `## Issue (aliases: i, issues, ticket)
 ` + "```" + `
-plane issue list [--state <name:text>] [--assignee <@username:text>]
+plane-cli issue list [--state <name:text>] [--assignee <@username:text>]
                  [--limit <count:int>]
 
-plane issue view <id:seq_id|uuid>
+plane-cli issue view <id:seq_id|uuid>
 
-plane issue create [--title <text>] [--description <text>]
+plane-cli issue create [--title <text>] [--description <text>]
                    [--priority <enum:none|low|medium|high|urgent>]
                    [--assignee <@username:text>...] [--label <text>...]
 
-plane issue edit <id:seq_id|uuid> [--title <text>] [--description <text>]
+plane-cli issue edit <id:seq_id|uuid> [--title <text>] [--description <text>]
                  [--priority <enum:none|low|medium|high|urgent>]
                  [--state <enum:backlog|todo|in-progress|done>]
                  [--assignee <@username:text>...] [--label <text>...]
 
-plane issue delete <id:seq_id|uuid>
-plane issue search <query:text>
+plane-cli issue delete <id:seq_id|uuid>
+plane-cli issue search <query:text>
 
 # Issue Comments
-plane issue comment list <issue-id:seq_id|uuid>
-plane issue comment add <issue-id:seq_id|uuid> [--text <markdown:text>]
+plane-cli issue comment list <issue-id:seq_id|uuid>
+plane-cli issue comment add <issue-id:seq_id|uuid> [--text <markdown:text>]
                         [--access <enum:INTERNAL|EXTERNAL>]
-plane issue comment delete <issue-id:seq_id|uuid> <comment-id:uuid>
+plane-cli issue comment delete <issue-id:seq_id|uuid> <comment-id:uuid>
 
 # Issue Links
-plane issue link list <issue-id:seq_id|uuid>
-plane issue link add <issue-id:seq_id|uuid> <url:text> [--title <text>]
-plane issue link delete <issue-id:seq_id|uuid> <link-id:uuid>
+plane-cli issue link list <issue-id:seq_id|uuid>
+plane-cli issue link add <issue-id:seq_id|uuid> <url:text> [--title <text>]
+plane-cli issue link delete <issue-id:seq_id|uuid> <link-id:uuid>
 
 # Issue Time Tracking
-plane issue time list <issue-id:seq_id|uuid>
-plane issue time log <issue-id:seq_id|uuid> <duration:minutes|1h30m>
+plane-cli issue time list <issue-id:seq_id|uuid>
+plane-cli issue time log <issue-id:seq_id|uuid> <duration:minutes|1h30m>
                      [--description <text>]
-plane issue time total <issue-id:seq_id|uuid>
-plane issue time edit <issue-id:seq_id|uuid> <worklog-id:uuid>
+plane-cli issue time total <issue-id:seq_id|uuid>
+plane-cli issue time edit <issue-id:seq_id|uuid> <worklog-id:uuid>
                       [--description <text>] [--duration <minutes|1h30m>]
-plane issue time delete <issue-id:seq_id|uuid> <worklog-id:uuid>
+plane-cli issue time delete <issue-id:seq_id|uuid> <worklog-id:uuid>
 
 # Issue Attachments
-plane issue attachment list <issue-id:seq_id|uuid>
-plane issue attachment upload <issue-id:seq_id|uuid> <file-path:text>
-plane issue attachment edit <issue-id:seq_id|uuid> <attachment-id:uuid>
+plane-cli issue attachment list <issue-id:seq_id|uuid>
+plane-cli issue attachment upload <issue-id:seq_id|uuid> <file-path:text>
+plane-cli issue attachment edit <issue-id:seq_id|uuid> <attachment-id:uuid>
                            [--name <text>] [--archive | --unarchive]
-plane issue attachment delete <issue-id:seq_id|uuid> <attachment-id:uuid>
+plane-cli issue attachment delete <issue-id:seq_id|uuid> <attachment-id:uuid>
 
 # Issue Activity
-plane issue activity list <issue-id:seq_id|uuid>
-plane issue activity view <issue-id:seq_id|uuid> <activity-id:uuid>
+plane-cli issue activity list <issue-id:seq_id|uuid>
+plane-cli issue activity view <issue-id:seq_id|uuid> <activity-id:uuid>
 ` + "```" + `
 
 `
@@ -132,16 +132,16 @@ plane issue activity view <issue-id:seq_id|uuid> <activity-id:uuid>
 func getModuleCommands() string {
 	return `## Module (aliases: mod)
 ` + "```" + `
-plane module list [--archived]
-plane module view <id:uuid>
-plane module create [--name <text>] [--description <text>]
+plane-cli module list [--archived]
+plane-cli module view <id:uuid>
+plane-cli module create [--name <text>] [--description <text>]
                     [--status <enum:backlog|planned|in-progress|paused|completed|cancelled>]
-plane module edit <id:uuid> [--name <text>] [--description <text>] [--status <enum:...>]
-plane module delete <id:uuid>
-plane module archive <id:uuid>
-plane module issues <id:uuid>
-plane module add-issues <module-id:uuid> <issue-ids:uuid...>
-plane module remove-issue <module-id:uuid> <issue-id:uuid>
+plane-cli module edit <id:uuid> [--name <text>] [--description <text>] [--status <enum:...>]
+plane-cli module delete <id:uuid>
+plane-cli module archive <id:uuid>
+plane-cli module issues <id:uuid>
+plane-cli module add-issues <module-id:uuid> <issue-ids:uuid...>
+plane-cli module remove-issue <module-id:uuid> <issue-id:uuid>
 ` + "```" + `
 
 `
@@ -150,14 +150,14 @@ plane module remove-issue <module-id:uuid> <issue-id:uuid>
 func getStateCommands() string {
 	return `## State (aliases: states)
 ` + "```" + `
-plane state list
-plane state view <id:uuid>
-plane state create [--name <text>] [--description <text>]
+plane-cli state list
+plane-cli state view <id:uuid>
+plane-cli state create [--name <text>] [--description <text>]
                    [--color <hex:#RRGGBB>]
                    [--group <enum:backlog|unstarted|started|completed|cancelled>]
-plane state edit <id:uuid> [--name <text>] [--description <text>]
+plane-cli state edit <id:uuid> [--name <text>] [--description <text>]
                  [--color <hex>] [--group <enum:...>]
-plane state delete <id:uuid>
+plane-cli state delete <id:uuid>
 ` + "```" + `
 
 `
@@ -166,11 +166,11 @@ plane state delete <id:uuid>
 func getLabelCommands() string {
 	return `## Label (aliases: labels, tag)
 ` + "```" + `
-plane label list
-plane label view <id:uuid>
-plane label create [--name <text>] [--description <text>] [--color <hex:#RRGGBB>]
-plane label edit <id:uuid> [--name <text>] [--description <text>] [--color <hex>]
-plane label delete <id:uuid>
+plane-cli label list
+plane-cli label view <id:uuid>
+plane-cli label create [--name <text>] [--description <text>] [--color <hex:#RRGGBB>]
+plane-cli label edit <id:uuid> [--name <text>] [--description <text>] [--color <hex>]
+plane-cli label delete <id:uuid>
 ` + "```" + `
 
 `
@@ -179,10 +179,10 @@ plane label delete <id:uuid>
 func getIntakeCommands() string {
 	return `## Intake (aliases: inbox, requests)
 ` + "```" + `
-plane intake list
-plane intake view <id:uuid>
-plane intake create [--name <text>] [--priority <enum:low|medium|high|urgent>]
-plane intake delete <id:uuid>
+plane-cli intake list
+plane-cli intake view <id:uuid>
+plane-cli intake create [--name <text>] [--priority <enum:low|medium|high|urgent>]
+plane-cli intake delete <id:uuid>
 ` + "```" + `
 
 `
@@ -191,9 +191,9 @@ plane intake delete <id:uuid>
 func getTypeCommands() string {
 	return `## Type (aliases: issue-type)
 ` + "```" + `
-plane type list
-plane type create [--name <text>] [--description <text>]
-plane type delete <id:uuid>
+plane-cli type list
+plane-cli type create [--name <text>] [--description <text>]
+plane-cli type delete <id:uuid>
 ` + "```" + `
 
 `
@@ -202,17 +202,17 @@ plane type delete <id:uuid>
 func getCycleCommands() string {
 	return `## Cycle (aliases: sprint)
 ` + "```" + `
-plane cycle list [--archived]
-plane cycle view <id:uuid>
-plane cycle create [--name <text>] [--description <text>]
+plane-cli cycle list [--archived]
+plane-cli cycle view <id:uuid>
+plane-cli cycle create [--name <text>] [--description <text>]
                    [--start-date <YYYY-MM-DD>] [--end-date <YYYY-MM-DD>]
-plane cycle edit <id:uuid> [--name <text>] [--description <text>]
+plane-cli cycle edit <id:uuid> [--name <text>] [--description <text>]
                  [--start-date <YYYY-MM-DD>] [--end-date <YYYY-MM-DD>]
-plane cycle delete <id:uuid>
-plane cycle archive <id:uuid>
-plane cycle issues <id:uuid>
-plane cycle add-issues <cycle-id:uuid> <issue-ids:uuid...>
-plane cycle remove-issue <cycle-id:uuid> <issue-id:uuid>
+plane-cli cycle delete <id:uuid>
+plane-cli cycle archive <id:uuid>
+plane-cli cycle issues <id:uuid>
+plane-cli cycle add-issues <cycle-id:uuid> <issue-ids:uuid...>
+plane-cli cycle remove-issue <cycle-id:uuid> <issue-id:uuid>
 ` + "```" + `
 
 `
@@ -221,8 +221,8 @@ plane cycle remove-issue <cycle-id:uuid> <issue-id:uuid>
 func getEpicCommands() string {
 	return `## Epic (aliases: epics)
 ` + "```" + `
-plane epic list
-plane epic view <id:uuid>
+plane-cli epic list
+plane-cli epic view <id:uuid>
 ` + "```" + `
 
 `
@@ -231,11 +231,11 @@ plane epic view <id:uuid>
 func getProjectCommands() string {
 	return `## Project (aliases: proj)
 ` + "```" + `
-plane project list
-plane project create [<name:text>]
-plane project info [<id:uuid>]
-plane project delete <id:uuid>
-plane project members [<id:uuid>]
+plane-cli project list
+plane-cli project create [<name:text>]
+plane-cli project info [<id:uuid>]
+plane-cli project delete <id:uuid>
+plane-cli project members [<id:uuid>]
 ` + "```" + `
 
 `
@@ -244,9 +244,9 @@ plane project members [<id:uuid>]
 func getWorkspaceCommands() string {
 	return `## Workspace (aliases: ws)
 ` + "```" + `
-plane workspace info [<slug:text>]
-plane workspace switch [<slug:text>]
-plane workspace members [--search <text>] [--exact] [--limit <count:int>]
+plane-cli workspace info [<slug:text>]
+plane-cli workspace switch [<slug:text>]
+plane-cli workspace members [--search <text>] [--exact] [--limit <count:int>]
 ` + "```" + `
 
 `

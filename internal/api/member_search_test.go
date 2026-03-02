@@ -70,7 +70,7 @@ func TestResolveAssigneesIncludesSuggestions(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Closest matches:")
 	assert.Contains(t, err.Error(), "Rohith")
-	assert.Contains(t, err.Error(), "plane workspace members --search rohi")
+	assert.Contains(t, err.Error(), "plane-cli workspace members --search rohi")
 }
 
 func TestWorkspaceMembersCacheIsScopedByWorkspace(t *testing.T) {

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"runtime/debug"
 
 	"github.com/rohithmahesh3/plane-cli/cmd/auth"
 	"github.com/rohithmahesh3/plane-cli/cmd/config"
@@ -34,7 +35,7 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "plane",
+	Use:   "plane-cli",
 	Short: "A CLI tool for managing Plane projects",
 	Long: `plane-cli is a command-line interface for Plane project management.
 
@@ -42,11 +43,11 @@ It allows you to manage workspaces, projects, issues, cycles, and modules
 from the comfort of your terminal.
 
 Get started:
-  plane auth login                    # Authenticate with Plane
-  plane workspace info                # Show configured workspace access
-  plane workspace members --search alice # Find assignable workspace users by name/email
-  plane project list                  # List projects in current workspace
-  plane issue list                    # List issues in current project`,
+  plane-cli auth login                    # Authenticate with Plane
+  plane-cli workspace info                # Show configured workspace access
+  plane-cli workspace members --search alice # Find assignable workspace users by name/email
+  plane-cli project list                  # List projects in current workspace
+  plane-cli issue list                    # List issues in current project`,
 	SilenceUsage: true,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		// Skip config initialization for certain commands
@@ -111,6 +112,14 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print version information",
 	Run: func(cmd *cobra.Command, args []string) {
+		// Try to get version from Go module info (works with go install)
+		// Version is set when installed via: go install github.com/rohithmahesh3/plane-cli@v1.0.1
+		if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" && info.Main.Version != "(devel)" {
+			fmt.Printf("plane-cli version %s\n", info.Main.Version)
+			return
+		}
+
+		// Fall back to ldflags for Makefile builds or local development
 		fmt.Printf("plane-cli version %s (commit: %s, built: %s)\n", version, commit, date)
 	},
 }
@@ -121,27 +130,27 @@ var completionCmd = &cobra.Command{
 	Long: `To load completions:
 
 Bash:
-  $ source <(plane completion bash)
+  $ source <(plane-cli completion bash)
   # To load completions for each session, execute once:
   # Linux:
-  $ plane completion bash > /etc/bash_completion.d/plane
+  $ plane-cli completion bash > /etc/bash_completion.d/plane-cli
   # macOS:
-  $ plane completion bash > $(brew --prefix)/etc/bash_completion.d/plane
+  $ plane-cli completion bash > $(brew --prefix)/etc/bash_completion.d/plane-cli
 
 Zsh:
-  $ source <(plane completion zsh)
+  $ source <(plane-cli completion zsh)
   # To load completions for each session, execute once:
-  $ plane completion zsh > "${fpath[1]}/_plane"
+  $ plane-cli completion zsh > "${fpath[1]}/_plane-cli"
 
 Fish:
-  $ plane completion fish | source
+  $ source <(plane-cli completion fish)
   # To load completions for each session, execute once:
-  $ plane completion fish > ~/.config/fish/completions/plane.fish
+  $ plane-cli completion fish > ~/.config/fish/completions/plane-cli.fish
 
 PowerShell:
-  PS> plane completion powershell | Out-String | Invoke-Expression
+  PS> plane-cli completion powershell | Out-String | Invoke-Expression
   # To load completions for every new session, run:
-  PS> plane completion powershell > plane.ps1
+  PS> plane-cli completion powershell > plane-cli.ps1
   # and source this file from your PowerShell profile.
 `,
 	DisableFlagsInUseLine: true,
