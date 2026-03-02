@@ -65,7 +65,9 @@ func (c *Client) UploadAttachment(projectID, issueID, filePath string) (*plane.A
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	fileInfo, err := file.Stat()
 	if err != nil {
@@ -97,7 +99,9 @@ func (c *Client) UploadAttachment(projectID, issueID, filePath string) (*plane.A
 	writer := multipart.NewWriter(pw)
 
 	go func() {
-		defer pw.Close()
+		defer func() {
+			_ = pw.Close()
+		}()
 		part, err := writer.CreateFormFile("file", filename)
 		if err != nil {
 			pw.CloseWithError(err)
@@ -107,7 +111,7 @@ func (c *Client) UploadAttachment(projectID, issueID, filePath string) (*plane.A
 			pw.CloseWithError(err)
 			return
 		}
-		writer.Close()
+		_ = writer.Close()
 	}()
 
 	requestBody = pr
@@ -128,7 +132,9 @@ func (c *Client) UploadAttachment(projectID, issueID, filePath string) (*plane.A
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)

@@ -51,7 +51,9 @@ func (f *Formatter) printJSON(data interface{}) error {
 
 func (f *Formatter) printYAML(data interface{}) error {
 	encoder := yaml.NewEncoder(os.Stdout)
-	defer encoder.Close()
+	defer func() {
+		_ = encoder.Close()
+	}()
 	return encoder.Encode(data)
 }
 

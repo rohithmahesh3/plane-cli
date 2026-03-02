@@ -41,7 +41,7 @@ func TestListActivities(t *testing.T) {
 			Results: mockActivities,
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -81,7 +81,7 @@ func TestGetActivity(t *testing.T) {
 			Actor: "user-1",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(activity)
+		_ = json.NewEncoder(w).Encode(activity)
 	}))
 	defer server.Close()
 

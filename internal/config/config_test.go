@@ -114,7 +114,9 @@ func TestLocalConfig(t *testing.T) {
 
 	// Save original working dir and restore later
 	originalWd, _ := os.Getwd()
-	defer os.Chdir(originalWd)
+	defer func() {
+		_ = os.Chdir(originalWd)
+	}()
 
 	err = os.Chdir(projectDir)
 	require.NoError(t, err)

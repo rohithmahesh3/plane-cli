@@ -29,7 +29,7 @@ func TestListWorklogs(t *testing.T) {
 			Results: mockWorklogs,
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -78,7 +78,7 @@ func TestCreateWorklog(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(worklog)
+		_ = json.NewEncoder(w).Encode(worklog)
 	}))
 	defer server.Close()
 
@@ -115,7 +115,7 @@ func TestGetTotalWorklogTime(t *testing.T) {
 
 		total := plane.WorklogTotal{TotalTime: 150}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(total)
+		_ = json.NewEncoder(w).Encode(total)
 	}))
 	defer server.Close()
 

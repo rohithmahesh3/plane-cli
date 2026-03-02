@@ -29,7 +29,7 @@ func TestListLabels(t *testing.T) {
 			Results: mockLabels,
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -75,7 +75,7 @@ func TestCreateLabel(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(label)
+		_ = json.NewEncoder(w).Encode(label)
 	}))
 	defer server.Close()
 
