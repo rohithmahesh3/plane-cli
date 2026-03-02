@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/rohithmahesh3/plane-cli/pkg/plane"
 )
@@ -44,10 +45,14 @@ func (c *Client) ListIssues(projectID string, opts IssueListOptions) ([]plane.Is
 		query.Set("module", opts.Module)
 	}
 	if opts.PerPage > 0 {
+		query.Set("limit", fmt.Sprintf("%d", opts.PerPage))
 		query.Set("per_page", fmt.Sprintf("%d", opts.PerPage))
 	}
 	if opts.Cursor != "" {
 		query.Set("cursor", opts.Cursor)
+	}
+	if opts.Search != "" {
+		query.Set("search", opts.Search)
 	}
 
 	var response Response
@@ -77,24 +82,32 @@ func (c *Client) GetIssue(projectID, issueID string) (*plane.Issue, error) {
 	return &issue, nil
 }
 
-func (c *Client) GetIssueByIdentifier(projectID string, sequenceID int) (*plane.Issue, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/?sequence_id=%d", c.Workspace, projectID, sequenceID)
+func (c *Client) GetIssueByIdentifier(identifier string) (*plane.Issue, error) {
+	path := fmt.Sprintf("/workspaces/%s/work-items/%s/", c.Workspace, url.PathEscape(identifier))
 
-	var response Response
-	if err := c.Get(path, nil, &response); err != nil {
+	query := url.Values{}
+	query.Set("expand", "assignees,state,labels")
+
+	var issue plane.Issue
+	if err := c.Get(path, query, &issue); err != nil {
 		return nil, err
 	}
 
-	var issues []plane.Issue
-	if err := json.Unmarshal(response.Results, &issues); err != nil {
+	return &issue, nil
+}
+
+func (c *Client) GetIssueBySequenceID(projectID string, sequenceID int) (*plane.Issue, error) {
+	project, err := c.GetProject(projectID)
+	if err != nil {
 		return nil, err
 	}
 
-	if len(issues) == 0 {
-		return nil, fmt.Errorf("issue not found")
+	identifier := strings.TrimSpace(project.Identifier)
+	if identifier == "" {
+		return nil, fmt.Errorf("project %s has no identifier", projectID)
 	}
 
-	return &issues[0], nil
+	return c.GetIssueByIdentifier(fmt.Sprintf("%s-%d", identifier, sequenceID))
 }
 
 func (c *Client) CreateIssue(projectID string, req plane.CreateIssueRequest) (*plane.Issue, error) {

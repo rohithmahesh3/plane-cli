@@ -244,7 +244,7 @@ type Attachment struct {
 	EntityType      string                 `json:"entity_type,omitempty"`
 	IsDeleted       bool                   `json:"is_deleted,omitempty"`
 	IsArchived      bool                   `json:"is_archived,omitempty"`
-	Size            int64                  `json:"size,omitempty"`
+	Size            FlexibleInt64          `json:"size,omitempty"`
 	IsUploaded      bool                   `json:"is_uploaded,omitempty"`
 	StorageMetadata map[string]interface{} `json:"storage_metadata,omitempty"`
 	CreatedBy       string                 `json:"created_by,omitempty"`
@@ -262,9 +262,29 @@ type AttachmentAttributes struct {
 	Type string `json:"type,omitempty"`
 }
 
-type UploadCredentials struct {
+type UploadData struct {
 	URL    string            `json:"url"`
 	Fields map[string]string `json:"fields,omitempty"`
+}
+
+type UploadCredentials struct {
+	UploadData UploadData        `json:"upload_data,omitempty"`
+	AssetID    string            `json:"asset_id,omitempty"`
+	Attachment Attachment        `json:"attachment,omitempty"`
+	AssetURL   string            `json:"asset_url,omitempty"`
+	URL        string            `json:"url,omitempty"`
+	Fields     map[string]string `json:"fields,omitempty"`
+}
+
+func (u UploadCredentials) UploadTarget() UploadData {
+	if u.UploadData.URL != "" {
+		return u.UploadData
+	}
+
+	return UploadData{
+		URL:    u.URL,
+		Fields: u.Fields,
+	}
 }
 
 type Epic struct {

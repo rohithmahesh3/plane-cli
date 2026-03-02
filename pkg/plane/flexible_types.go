@@ -3,6 +3,7 @@ package plane
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 )
 
 // FlexibleState can unmarshal from either a string (UUID) or an object
@@ -185,4 +186,35 @@ func getString(m map[string]interface{}, key string) string {
 		}
 	}
 	return ""
+}
+
+type FlexibleInt64 int64
+
+func (fi *FlexibleInt64) UnmarshalJSON(data []byte) error {
+	var raw interface{}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	switch v := raw.(type) {
+	case float64:
+		*fi = FlexibleInt64(int64(v))
+		return nil
+	case string:
+		parsed, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return err
+		}
+		*fi = FlexibleInt64(parsed)
+		return nil
+	case nil:
+		*fi = 0
+		return nil
+	default:
+		return fmt.Errorf("integer must be number or string, got %T", raw)
+	}
+}
+
+func (fi FlexibleInt64) Int64() int64 {
+	return int64(fi)
 }

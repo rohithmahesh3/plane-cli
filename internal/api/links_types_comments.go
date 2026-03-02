@@ -65,7 +65,7 @@ func (c *Client) DeleteLink(projectID, issueID, linkID string) error {
 
 // ListIssueTypes retrieves all issue types for a project
 func (c *Client) ListIssueTypes(projectID string) ([]plane.IssueType, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issue-types/", c.Workspace, projectID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-item-types/", c.Workspace, projectID)
 
 	var response struct {
 		Results []plane.IssueType `json:"results"`
@@ -80,7 +80,7 @@ func (c *Client) ListIssueTypes(projectID string) ([]plane.IssueType, error) {
 
 // GetIssueType retrieves a specific issue type
 func (c *Client) GetIssueType(projectID, typeID string) (*plane.IssueType, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issue-types/%s/", c.Workspace, projectID, typeID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-item-types/%s/", c.Workspace, projectID, typeID)
 
 	var issueType plane.IssueType
 	if err := c.Get(path, nil, &issueType); err != nil {
@@ -92,7 +92,7 @@ func (c *Client) GetIssueType(projectID, typeID string) (*plane.IssueType, error
 
 // CreateIssueType creates a new issue type
 func (c *Client) CreateIssueType(projectID string, req plane.CreateIssueTypeRequest) (*plane.IssueType, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issue-types/", c.Workspace, projectID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-item-types/", c.Workspace, projectID)
 
 	var issueType plane.IssueType
 	if err := c.Post(path, req, &issueType); err != nil {
@@ -104,7 +104,7 @@ func (c *Client) CreateIssueType(projectID string, req plane.CreateIssueTypeRequ
 
 // UpdateIssueType updates an existing issue type
 func (c *Client) UpdateIssueType(projectID, typeID string, req plane.UpdateIssueTypeRequest) (*plane.IssueType, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issue-types/%s/", c.Workspace, projectID, typeID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-item-types/%s/", c.Workspace, projectID, typeID)
 
 	var issueType plane.IssueType
 	if err := c.Patch(path, req, &issueType); err != nil {
@@ -116,7 +116,7 @@ func (c *Client) UpdateIssueType(projectID, typeID string, req plane.UpdateIssue
 
 // DeleteIssueType removes an issue type
 func (c *Client) DeleteIssueType(projectID, typeID string) error {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issue-types/%s/", c.Workspace, projectID, typeID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-item-types/%s/", c.Workspace, projectID, typeID)
 	return c.Delete(path)
 }
 

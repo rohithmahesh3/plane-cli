@@ -138,7 +138,7 @@ func TestIntegration_IssueLifecycle(t *testing.T) {
 	assert.Equal(t, issue.ID, retrievedIssue.ID)
 
 	// Get issue by sequence ID
-	issueBySeq, err := client.GetIssueByIdentifier(projectID, issue.SequenceID)
+	issueBySeq, err := client.GetIssueBySequenceID(projectID, issue.SequenceID)
 	require.NoError(t, err)
 	assert.Equal(t, issue.ID, issueBySeq.ID)
 

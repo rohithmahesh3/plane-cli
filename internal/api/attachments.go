@@ -1,9 +1,10 @@
 package api
 
 import (
-	"encoding/json"
+	"bytes"
 	"fmt"
 	"io"
+	"mime"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -16,38 +17,46 @@ import (
 func (c *Client) ListAttachments(projectID, issueID string) ([]plane.Attachment, error) {
 	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/attachments/", c.Workspace, projectID, issueID)
 
-	var response struct {
-		Results []plane.Attachment `json:"results"`
-	}
-
-	if err := c.Get(path, nil, &response); err != nil {
+	body, err := c.GetRaw(path, nil)
+	if err != nil {
 		return nil, err
 	}
 
-	return response.Results, nil
+	return unmarshalListResponse[plane.Attachment](body)
 }
 
 // GetAttachment retrieves a specific attachment
 func (c *Client) GetAttachment(projectID, issueID, attachmentID string) (*plane.Attachment, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/attachments/%s/", c.Workspace, projectID, issueID, attachmentID)
-
-	var attachment plane.Attachment
-	if err := c.Get(path, nil, &attachment); err != nil {
+	attachments, err := c.ListAttachments(projectID, issueID)
+	if err != nil {
 		return nil, err
 	}
 
-	return &attachment, nil
+	for _, attachment := range attachments {
+		if attachment.ID == attachmentID {
+			return &attachment, nil
+		}
+	}
+
+	return nil, fmt.Errorf("attachment %s not found", attachmentID)
 }
 
 // GetUploadCredentials gets credentials for uploading an attachment
 func (c *Client) GetUploadCredentials(projectID, issueID, filename string, size int64) (*plane.UploadCredentials, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/attachments/upload-credentials/", c.Workspace, projectID, issueID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/attachments/", c.Workspace, projectID, issueID)
+
+	contentType := mime.TypeByExtension(filepath.Ext(filename))
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
 
 	req := struct {
 		Name string `json:"name"`
+		Type string `json:"type"`
 		Size int64  `json:"size"`
 	}{
 		Name: filename,
+		Type: contentType,
 		Size: size,
 	}
 
@@ -82,49 +91,31 @@ func (c *Client) UploadAttachment(projectID, issueID, filePath string) (*plane.A
 		return nil, fmt.Errorf("failed to get upload credentials: %w", err)
 	}
 
-	// Upload file to the provided URL (simplified - assumes direct upload)
-	// In a real implementation, this would use the credentials to upload to S3 or similar
-	_ = credentials
+	uploadTarget := credentials.UploadTarget()
+	if uploadTarget.URL == "" {
+		return nil, fmt.Errorf("upload target missing from credentials response")
+	}
 
-	// For now, we'll use a multipart upload to the Plane API directly
-	// This is a simplified implementation
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/attachments/", c.Workspace, projectID, issueID)
-
-	// Create multipart form
-	var requestBody io.Reader
-	var contentType string
-
-	// Create a pipe to stream the multipart form
-	pr, pw := io.Pipe()
-	writer := multipart.NewWriter(pw)
-
-	go func() {
-		defer func() {
-			_ = pw.Close()
-		}()
-		part, err := writer.CreateFormFile("file", filename)
-		if err != nil {
-			pw.CloseWithError(err)
-			return
-		}
-		if _, err := io.Copy(part, file); err != nil {
-			pw.CloseWithError(err)
-			return
-		}
-		_ = writer.Close()
-	}()
-
-	requestBody = pr
-	contentType = writer.FormDataContentType()
-
-	// Create request
-	urlStr := fmt.Sprintf("%s/api/%s%s", c.BaseURL, APIVersion, path)
-	req, err := http.NewRequest("POST", urlStr, requestBody)
+	requestBody, contentType, err := buildMultipartPayload(uploadTarget.Fields, "file", filename, file)
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Set("X-API-Key", c.APIKey)
+	req, err := http.NewRequest("POST", uploadTarget.URL, requestBody)
+	if err != nil {
+		return nil, err
+	}
+
+	if seeker, ok := requestBody.(io.Seeker); ok {
+		size, err := seeker.Seek(0, io.SeekEnd)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := seeker.Seek(0, io.SeekStart); err != nil {
+			return nil, err
+		}
+		req.ContentLength = size
+	}
 	req.Header.Set("Content-Type", contentType)
 
 	// Execute request
@@ -136,13 +127,21 @@ func (c *Client) UploadAttachment(projectID, issueID, filePath string) (*plane.A
 		_ = resp.Body.Close()
 	}()
 
-	if resp.StatusCode >= 400 {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("upload failed (status %d): %s", resp.StatusCode, string(body))
 	}
 
-	var attachment plane.Attachment
-	if err := c.unmarshalResponse(resp.Body, &attachment); err != nil {
+	attachmentID := credentials.AssetID
+	if attachmentID == "" {
+		attachmentID = credentials.Attachment.ID
+	}
+	if attachmentID == "" {
+		return nil, fmt.Errorf("attachment ID missing from credentials response")
+	}
+
+	attachment, err := c.completeAttachmentUpload(projectID, issueID, attachmentID)
+	if err != nil {
 		return nil, err
 	}
 
@@ -167,14 +166,83 @@ func (c *Client) UpdateAttachment(projectID, issueID, attachmentID string, req p
 	return &attachment, nil
 }
 
-// Helper function to unmarshal response
-func (c *Client) unmarshalResponse(body io.Reader, v interface{}) error {
-	data, err := io.ReadAll(body)
+func (c *Client) completeAttachmentUpload(projectID, issueID, attachmentID string) (plane.Attachment, error) {
+	attachmentPath := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/attachments/%s/", c.Workspace, projectID, issueID, attachmentID)
+
+	// Prefer the documented completion route, then fall back to the deployed PATCH flow.
+	attempts := []struct {
+		method string
+		path   string
+		body   interface{}
+	}{
+		{
+			method: http.MethodPost,
+			path:   attachmentPath + "complete-upload/",
+			body:   map[string]string{"asset_id": attachmentID},
+		},
+		{
+			method: http.MethodPost,
+			path:   fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/attachments/complete-upload/", c.Workspace, projectID, issueID),
+			body:   map[string]string{"asset_id": attachmentID},
+		},
+		{
+			method: http.MethodPatch,
+			path:   attachmentPath,
+			body:   map[string]bool{"is_uploaded": true},
+		},
+	}
+
+	var lastErr error
+	for _, attempt := range attempts {
+		var attachment plane.Attachment
+
+		switch attempt.method {
+		case http.MethodPost:
+			lastErr = c.Post(attempt.path, attempt.body, &attachment)
+		case http.MethodPatch:
+			lastErr = c.Patch(attempt.path, attempt.body, &attachment)
+		default:
+			lastErr = fmt.Errorf("unsupported method %s", attempt.method)
+		}
+
+		if lastErr == nil {
+			if attachment.ID != "" {
+				return attachment, nil
+			}
+
+			fetched, err := c.GetAttachment(projectID, issueID, attachmentID)
+			if err == nil {
+				return *fetched, nil
+			}
+			lastErr = err
+			continue
+		}
+	}
+
+	return plane.Attachment{}, lastErr
+}
+
+func buildMultipartPayload(fields map[string]string, fileField, filename string, file io.Reader) (io.Reader, string, error) {
+	var payload bytes.Buffer
+	writer := multipart.NewWriter(&payload)
+
+	for key, value := range fields {
+		if err := writer.WriteField(key, value); err != nil {
+			return nil, "", err
+		}
+	}
+
+	part, err := writer.CreateFormFile(fileField, filename)
 	if err != nil {
-		return err
+		return nil, "", err
 	}
-	if len(data) == 0 {
-		return nil
+	if _, err := io.Copy(part, file); err != nil {
+		return nil, "", err
 	}
-	return json.Unmarshal(data, v)
+
+	if err := writer.Close(); err != nil {
+		return nil, "", err
+	}
+
+	return bytes.NewReader(payload.Bytes()), writer.FormDataContentType(), nil
 }

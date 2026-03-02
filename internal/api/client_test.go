@@ -239,6 +239,8 @@ func TestClient_ListIssues(t *testing.T) {
 		query := r.URL.Query()
 		assert.Equal(t, "backlog", query.Get("state"))
 		assert.Equal(t, "high", query.Get("priority"))
+		assert.Equal(t, "25", query.Get("limit"))
+		assert.Equal(t, "25", query.Get("per_page"))
 
 		response := Response{
 			Results: mustMarshal(t, mockIssues),
@@ -264,6 +266,7 @@ func TestClient_ListIssues(t *testing.T) {
 	opts := IssueListOptions{
 		State:    "backlog",
 		Priority: "high",
+		PerPage:  25,
 	}
 
 	issues, pagination, err := client.ListIssues("proj-1", opts)
@@ -272,6 +275,73 @@ func TestClient_ListIssues(t *testing.T) {
 	assert.Equal(t, "Test Issue", issues[0].Name)
 	assert.NotNil(t, pagination)
 	assert.Equal(t, "20:1:0", pagination.NextCursor)
+}
+
+func TestClient_GetIssueByIdentifier(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "GET", r.Method)
+		assert.Equal(t, "/api/v1/workspaces/test-workspace/work-items/TESTW-42/", r.URL.Path)
+		assert.Equal(t, "assignees,state,labels", r.URL.Query().Get("expand"))
+
+		response := plane.Issue{
+			ID:         "issue-42",
+			SequenceID: 42,
+			Name:       "Issue by identifier",
+		}
+
+		w.WriteHeader(http.StatusOK)
+		err := json.NewEncoder(w).Encode(response)
+		require.NoError(t, err)
+	}))
+	defer server.Close()
+
+	client := &Client{
+		HTTPClient: &http.Client{Timeout: DefaultTimeout},
+		BaseURL:    server.URL,
+		APIKey:     "test-api-key",
+		Workspace:  "test-workspace",
+	}
+
+	issue, err := client.GetIssueByIdentifier("TESTW-42")
+	require.NoError(t, err)
+	assert.Equal(t, "issue-42", issue.ID)
+	assert.Equal(t, 42, issue.SequenceID)
+}
+
+func TestClient_GetIssueBySequenceID(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v1/workspaces/test-workspace/projects/proj-1/":
+			err := json.NewEncoder(w).Encode(plane.Project{
+				ID:         "proj-1",
+				Identifier: "TESTW",
+				Name:       "Test Workspace",
+			})
+			require.NoError(t, err)
+		case "/api/v1/workspaces/test-workspace/work-items/TESTW-7/":
+			assert.Equal(t, "assignees,state,labels", r.URL.Query().Get("expand"))
+			err := json.NewEncoder(w).Encode(plane.Issue{
+				ID:         "issue-7",
+				SequenceID: 7,
+				Name:       "Sequence issue",
+			})
+			require.NoError(t, err)
+		default:
+			t.Fatalf("unexpected request path %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	client := &Client{
+		HTTPClient: &http.Client{Timeout: DefaultTimeout},
+		BaseURL:    server.URL,
+		APIKey:     "test-api-key",
+		Workspace:  "test-workspace",
+	}
+
+	issue, err := client.GetIssueBySequenceID("proj-1", 7)
+	require.NoError(t, err)
+	assert.Equal(t, "issue-7", issue.ID)
 }
 
 func TestClient_CreateIssue(t *testing.T) {

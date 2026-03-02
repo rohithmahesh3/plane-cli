@@ -88,21 +88,9 @@ func (c *Client) NewRequest(method, path string, body interface{}) (*http.Reques
 }
 
 func (c *Client) Do(req *http.Request, v interface{}) error {
-	resp, err := c.HTTPClient.Do(req)
+	body, err := c.DoRaw(req)
 	if err != nil {
 		return err
-	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode >= 400 {
-		return fmt.Errorf("API error (status %d): %s", resp.StatusCode, string(body))
 	}
 
 	if v != nil && len(body) > 0 {
@@ -123,6 +111,40 @@ func (c *Client) Get(path string, query url.Values, v interface{}) error {
 	}
 
 	return c.Do(req, v)
+}
+
+func (c *Client) DoRaw(req *http.Request) ([]byte, error) {
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("API error (status %d): %s", resp.StatusCode, string(body))
+	}
+
+	return body, nil
+}
+
+func (c *Client) GetRaw(path string, query url.Values) ([]byte, error) {
+	if query != nil {
+		path = path + "?" + query.Encode()
+	}
+
+	req, err := c.NewRequest("GET", path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.DoRaw(req)
 }
 
 func (c *Client) Post(path string, body interface{}, v interface{}) error {
@@ -154,4 +176,24 @@ func (c *Client) Delete(path string) error {
 
 func (c *Client) SetWorkspace(workspace string) {
 	c.Workspace = workspace
+}
+
+func unmarshalListResponse[T any](body []byte) ([]T, error) {
+	var wrapped struct {
+		Results json.RawMessage `json:"results"`
+	}
+	if err := json.Unmarshal(body, &wrapped); err == nil && wrapped.Results != nil {
+		var items []T
+		if err := json.Unmarshal(wrapped.Results, &items); err != nil {
+			return nil, err
+		}
+		return items, nil
+	}
+
+	var items []T
+	if err := json.Unmarshal(body, &items); err != nil {
+		return nil, err
+	}
+
+	return items, nil
 }

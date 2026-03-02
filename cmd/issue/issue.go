@@ -217,14 +217,17 @@ func runView(cmd *cobra.Command, args []string) error {
 	// Try to parse as sequence ID (number)
 	var issue *plane.Issue
 	if seqID, err := strconv.Atoi(issueID); err == nil {
-		issue, err = client.GetIssueByIdentifier(projectID, seqID)
+		issue, err = client.GetIssueBySequenceID(projectID, seqID)
 		if err != nil {
 			return err
 		}
 	} else {
 		issue, err = client.GetIssue(projectID, issueID)
 		if err != nil {
-			return err
+			issue, err = client.GetIssueByIdentifier(issueID)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
