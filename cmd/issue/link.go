@@ -68,6 +68,11 @@ func runLinkList(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	issueID, err = resolveIssueID(client, projectID, issueID)
+	if err != nil {
+		return err
+	}
+
 	links, err := client.ListLinks(projectID, issueID)
 	if err != nil {
 		return err
@@ -139,6 +144,11 @@ func runLinkAdd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	issueID, err = resolveIssueID(client, projectID, issueID)
+	if err != nil {
+		return err
+	}
+
 	req := plane.CreateLinkRequest{
 		Title: linkTitle,
 		URL:   url,
@@ -178,6 +188,11 @@ func runLinkDelete(cmd *cobra.Command, args []string) error {
 	}
 
 	client, err := api.NewClient()
+	if err != nil {
+		return err
+	}
+
+	issueID, err = resolveIssueID(client, projectID, issueID)
 	if err != nil {
 		return err
 	}

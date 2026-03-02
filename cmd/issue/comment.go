@@ -71,6 +71,11 @@ func runCommentList(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	issueID, err = resolveIssueID(client, projectID, issueID)
+	if err != nil {
+		return err
+	}
+
 	comments, err := client.ListComments(projectID, issueID)
 	if err != nil {
 		return err
@@ -142,16 +147,18 @@ func runCommentAdd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("comment text is required")
 	}
 
-	// Convert plain text to simple HTML
-	commentHTML := "<p>" + commentText + "</p>"
-
 	client, err := api.NewClient()
 	if err != nil {
 		return err
 	}
 
+	issueID, err = resolveIssueID(client, projectID, issueID)
+	if err != nil {
+		return err
+	}
+
 	req := plane.CreateCommentRequest{
-		CommentHTML: commentHTML,
+		CommentHTML: renderDescriptionHTML(commentText),
 		Access:      commentAccess,
 	}
 
@@ -189,6 +196,11 @@ func runCommentDelete(cmd *cobra.Command, args []string) error {
 	}
 
 	client, err := api.NewClient()
+	if err != nil {
+		return err
+	}
+
+	issueID, err = resolveIssueID(client, projectID, issueID)
 	if err != nil {
 		return err
 	}

@@ -111,6 +111,10 @@ func runTimeList(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	issueID, err = resolveIssueID(client, projectID, issueID)
+	if err != nil {
+		return err
+	}
 	if err := ensureTimeTrackingEnabled(client, projectID); err != nil {
 		return err
 	}
@@ -188,6 +192,10 @@ func runTimeLog(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	issueID, err = resolveIssueID(client, projectID, issueID)
+	if err != nil {
+		return err
+	}
 	if err := ensureTimeTrackingEnabled(client, projectID); err != nil {
 		return err
 	}
@@ -218,6 +226,10 @@ func runTimeTotal(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	issueID, err = resolveIssueID(client, projectID, issueID)
+	if err != nil {
+		return err
+	}
 	if err := ensureTimeTrackingEnabled(client, projectID); err != nil {
 		return err
 	}
@@ -241,6 +253,10 @@ func runTimeEdit(cmd *cobra.Command, args []string) error {
 	worklogID := args[1]
 
 	client, err := api.NewClient()
+	if err != nil {
+		return err
+	}
+	issueID, err = resolveIssueID(client, projectID, issueID)
 	if err != nil {
 		return err
 	}
@@ -331,6 +347,10 @@ func runTimeDelete(cmd *cobra.Command, args []string) error {
 	}
 
 	client, err := api.NewClient()
+	if err != nil {
+		return err
+	}
+	issueID, err = resolveIssueID(client, projectID, issueID)
 	if err != nil {
 		return err
 	}

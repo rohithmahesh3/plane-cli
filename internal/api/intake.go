@@ -23,6 +23,30 @@ func (c *Client) ListIntakeIssues(projectID string) ([]plane.IntakeIssue, error)
 
 // GetIntakeIssue retrieves a specific intake issue
 func (c *Client) GetIntakeIssue(projectID, intakeID string) (*plane.IntakeIssue, error) {
+	intake, err := c.getIntakeIssue(projectID, intakeID)
+	if err == nil {
+		return intake, nil
+	}
+
+	if !isAPIStatusError(err, 404) {
+		return nil, err
+	}
+
+	intakeIssues, listErr := c.ListIntakeIssues(projectID)
+	if listErr != nil {
+		return nil, err
+	}
+
+	for _, item := range intakeIssues {
+		if item.ID == intakeID && item.Issue != "" {
+			return c.getIntakeIssue(projectID, item.Issue)
+		}
+	}
+
+	return nil, err
+}
+
+func (c *Client) getIntakeIssue(projectID, intakeID string) (*plane.IntakeIssue, error) {
 	path := fmt.Sprintf("/workspaces/%s/projects/%s/intake-issues/%s/", c.Workspace, projectID, intakeID)
 
 	var intake plane.IntakeIssue

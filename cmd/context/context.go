@@ -20,7 +20,7 @@ var ContextCmd = &cobra.Command{
 	Long: `Output a concise CLI command reference in markdown format.
 Use flags to include additional modules beyond the default set.
 
-Default modules: issue, module, page, state, label, intake, type
+Default modules: issue, module, state, label, intake, type
 Optional modules: --cycle, --epic, --project, --workspace, --all`,
 	RunE: runContext,
 }
@@ -39,7 +39,6 @@ func runContext(cmd *cobra.Command, args []string) error {
 	output += getGlobalFlags()
 	output += getIssueCommands()
 	output += getModuleCommands()
-	output += getPageCommands()
 	output += getStateCommands()
 	output += getLabelCommands()
 	output += getIntakeCommands()
@@ -84,11 +83,11 @@ plane issue list [--state <name:text>] [--assignee <@username:text>]
 plane issue view <id:seq_id|uuid>
 
 plane issue create [--title <text>] [--description <text>]
-                   [--priority <enum:low|medium|high|urgent>]
+                   [--priority <enum:none|low|medium|high|urgent>]
                    [--assignee <@username:text>...] [--label <text>...]
 
 plane issue edit <id:seq_id|uuid> [--title <text>] [--description <text>]
-                 [--priority <enum:low|medium|high|urgent>]
+                 [--priority <enum:none|low|medium|high|urgent>]
                  [--state <enum:backlog|todo|in-progress|done>]
                  [--assignee <@username:text>...] [--label <text>...]
 
@@ -143,16 +142,6 @@ plane module archive <id:uuid>
 plane module issues <id:uuid>
 plane module add-issues <module-id:uuid> <issue-ids:uuid...>
 plane module remove-issue <module-id:uuid> <issue-id:uuid>
-` + "```" + `
-
-`
-}
-
-func getPageCommands() string {
-	return `## Page (aliases: pages, doc, wiki)
-` + "```" + `
-plane page view <id:uuid>
-plane page create [--name <text>] [--description <markdown:text>] [--workspace]
 ` + "```" + `
 
 `

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/rohithmahesh3/plane-cli/internal/config"
@@ -196,4 +197,12 @@ func unmarshalListResponse[T any](body []byte) ([]T, error) {
 	}
 
 	return items, nil
+}
+
+func isAPIStatusError(err error, statusCode int) bool {
+	if err == nil {
+		return false
+	}
+
+	return strings.Contains(err.Error(), fmt.Sprintf("status %d", statusCode))
 }

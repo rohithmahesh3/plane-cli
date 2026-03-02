@@ -54,6 +54,11 @@ func runActivityList(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	issueID, err = resolveIssueID(client, projectID, issueID)
+	if err != nil {
+		return err
+	}
+
 	activities, err := client.ListActivities(projectID, issueID)
 	if err != nil {
 		return err
@@ -104,6 +109,11 @@ func runActivityView(cmd *cobra.Command, args []string) error {
 	activityID := args[1]
 
 	client, err := api.NewClient()
+	if err != nil {
+		return err
+	}
+
+	issueID, err = resolveIssueID(client, projectID, issueID)
 	if err != nil {
 		return err
 	}

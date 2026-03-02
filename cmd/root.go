@@ -13,7 +13,6 @@ import (
 	"github.com/rohithmahesh3/plane-cli/cmd/issue"
 	"github.com/rohithmahesh3/plane-cli/cmd/label"
 	"github.com/rohithmahesh3/plane-cli/cmd/module"
-	"github.com/rohithmahesh3/plane-cli/cmd/page"
 	"github.com/rohithmahesh3/plane-cli/cmd/project"
 	"github.com/rohithmahesh3/plane-cli/cmd/state"
 	issuetype "github.com/rohithmahesh3/plane-cli/cmd/type"
@@ -100,7 +99,6 @@ func init() {
 	rootCmd.AddCommand(cycle.CycleCmd)
 	rootCmd.AddCommand(module.ModuleCmd)
 	rootCmd.AddCommand(epic.EpicCmd)
-	rootCmd.AddCommand(page.PageCmd)
 	rootCmd.AddCommand(intake.IntakeCmd)
 	rootCmd.AddCommand(config.ConfigCmd)
 	rootCmd.AddCommand(context.ContextCmd)

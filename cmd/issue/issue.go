@@ -2,7 +2,6 @@ package issue
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/rohithmahesh3/plane-cli/internal/api"
@@ -105,14 +104,14 @@ func init() {
 	// Create flags
 	createCmd.Flags().StringVarP(&issueTitle, "title", "t", "", "Issue title")
 	createCmd.Flags().StringVarP(&issueDescription, "description", "d", "", "Issue description")
-	createCmd.Flags().StringVarP(&issuePriority, "priority", "p", "medium", "Issue priority (low, medium, high, urgent)")
+	createCmd.Flags().StringVarP(&issuePriority, "priority", "p", "medium", "Issue priority (none, low, medium, high, urgent)")
 	createCmd.Flags().StringSliceVarP(&issueAssignees, "assignee", "a", nil, "Assignee(s) (@username)")
 	createCmd.Flags().StringSliceVar(&issueLabels, "label", nil, "Label(s)")
 
 	// Edit flags
 	editCmd.Flags().StringVarP(&issueTitle, "title", "t", "", "New title")
 	editCmd.Flags().StringVarP(&issueDescription, "description", "d", "", "New description")
-	editCmd.Flags().StringVar(&issuePriority, "priority", "", "New priority (low, medium, high, urgent)")
+	editCmd.Flags().StringVar(&issuePriority, "priority", "", "New priority (none, low, medium, high, urgent)")
 	editCmd.Flags().StringVar(&issueState, "state", "", "New state (backlog, todo, in-progress, done)")
 	editCmd.Flags().StringSliceVarP(&issueAssignees, "assignee", "a", nil, "New assignee(s) (@username)")
 	editCmd.Flags().StringSliceVar(&issueLabels, "label", nil, "New label(s)")
@@ -199,21 +198,9 @@ func runView(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Try to parse as sequence ID (number)
-	var issue *plane.Issue
-	if seqID, err := strconv.Atoi(issueID); err == nil {
-		issue, err = client.GetIssueBySequenceID(projectID, seqID)
-		if err != nil {
-			return err
-		}
-	} else {
-		issue, err = client.GetIssue(projectID, issueID)
-		if err != nil {
-			issue, err = client.GetIssueByIdentifier(issueID)
-			if err != nil {
-				return err
-			}
-		}
+	issue, err := resolveIssue(client, projectID, issueID)
+	if err != nil {
+		return err
 	}
 
 	formatter := output.NewFormatter(config.Cfg.OutputFormat, false)
@@ -268,11 +255,11 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	}
 
 	req := plane.CreateIssueRequest{
-		Name:        issueTitle,
-		Description: issueDescription,
-		Priority:    issuePriority,
-		Assignees:   resolvedAssignees,
-		Labels:      resolvedLabels,
+		Name:            issueTitle,
+		DescriptionHTML: renderDescriptionHTML(issueDescription),
+		Priority:        issuePriority,
+		Assignees:       resolvedAssignees,
+		Labels:          resolvedLabels,
 	}
 
 	issue, err := client.CreateIssue(projectID, req)
@@ -280,7 +267,7 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	output.Success(fmt.Sprintf("Created issue %s-%d", config.Cfg.DefaultProject[:4], issue.SequenceID))
+	output.Success(fmt.Sprintf("Created issue #%d", issue.SequenceID))
 	return nil
 }
 
@@ -290,7 +277,7 @@ func runEdit(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no project specified")
 	}
 
-	issueID := args[0]
+	issueRef := args[0]
 
 	client, err := api.NewClient()
 	if err != nil {
@@ -298,7 +285,7 @@ func runEdit(cmd *cobra.Command, args []string) error {
 	}
 
 	// Get current issue
-	issue, err := client.GetIssue(projectID, issueID)
+	issue, err := resolveIssue(client, projectID, issueRef)
 	if err != nil {
 		return err
 	}
@@ -320,7 +307,7 @@ func runEdit(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		priorityOptions := []string{"low", "medium", "high", "urgent"}
+		priorityOptions := []string{"none", "low", "medium", "high", "urgent"}
 		priorityPrompt := &survey.Select{
 			Message: "Priority:",
 			Options: priorityOptions,
@@ -335,7 +322,7 @@ func runEdit(cmd *cobra.Command, args []string) error {
 			req.Name = issueTitle
 		}
 		if issueDescription != "" {
-			req.Description = issueDescription
+			req.DescriptionHTML = renderDescriptionHTML(issueDescription)
 		}
 		if issuePriority != "" {
 			req.Priority = issuePriority
@@ -363,7 +350,7 @@ func runEdit(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	updatedIssue, err := client.UpdateIssue(projectID, issueID, req)
+	updatedIssue, err := client.UpdateIssue(projectID, issue.ID, req)
 	if err != nil {
 		return err
 	}
@@ -378,12 +365,22 @@ func runDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no project specified")
 	}
 
-	issueID := args[0]
+	issueRef := args[0]
+
+	client, err := api.NewClient()
+	if err != nil {
+		return err
+	}
+
+	issueID, err := resolveIssueID(client, projectID, issueRef)
+	if err != nil {
+		return err
+	}
 
 	// Confirm deletion
 	var confirm bool
 	prompt := &survey.Confirm{
-		Message: fmt.Sprintf("Are you sure you want to delete issue %s?", issueID),
+		Message: fmt.Sprintf("Are you sure you want to delete issue %s?", issueRef),
 		Default: false,
 	}
 	if err := survey.AskOne(prompt, &confirm); err != nil {
@@ -395,16 +392,11 @@ func runDelete(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	client, err := api.NewClient()
-	if err != nil {
-		return err
-	}
-
 	if err := client.DeleteIssue(projectID, issueID); err != nil {
 		return err
 	}
 
-	output.Success(fmt.Sprintf("Deleted issue %s", issueID))
+	output.Success(fmt.Sprintf("Deleted issue %s", issueRef))
 	return nil
 }
 

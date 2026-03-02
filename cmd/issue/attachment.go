@@ -82,6 +82,11 @@ func runAttachmentList(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	issueID, err = resolveIssueID(client, projectID, issueID)
+	if err != nil {
+		return err
+	}
+
 	attachments, err := client.ListAttachments(projectID, issueID)
 	if err != nil {
 		return err
@@ -135,6 +140,11 @@ func runAttachmentUpload(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	issueID, err = resolveIssueID(client, projectID, issueID)
+	if err != nil {
+		return err
+	}
+
 	attachment, err := client.UploadAttachment(projectID, issueID, filePath)
 	if err != nil {
 		return err
@@ -154,6 +164,11 @@ func runAttachmentEdit(cmd *cobra.Command, args []string) error {
 	attachmentID := args[1]
 
 	client, err := api.NewClient()
+	if err != nil {
+		return err
+	}
+
+	issueID, err = resolveIssueID(client, projectID, issueID)
 	if err != nil {
 		return err
 	}
@@ -190,6 +205,11 @@ func runAttachmentDelete(cmd *cobra.Command, args []string) error {
 	attachmentID := args[1]
 
 	client, err := api.NewClient()
+	if err != nil {
+		return err
+	}
+
+	issueID, err = resolveIssueID(client, projectID, issueID)
 	if err != nil {
 		return err
 	}
