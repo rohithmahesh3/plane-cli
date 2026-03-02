@@ -45,7 +45,7 @@ from the comfort of your terminal.
 Get started:
   plane auth login                    # Authenticate with Plane
   plane workspace info                # Show configured workspace access
-  plane workspace members --search me # Find assignable workspace users
+  plane workspace members --search alice # Find assignable workspace users by name/email
   plane project list                  # List projects in current workspace
   plane issue list                    # List issues in current project`,
 	SilenceUsage: true,

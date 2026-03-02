@@ -9,13 +9,18 @@ import (
 )
 
 var (
-	membersCache []plane.User
-	labelsCache  []plane.Label
-	statesCache  []plane.State
+	membersCache map[string][]plane.User
+	labelsCache  map[projectCacheKey][]plane.Label
+	statesCache  map[projectCacheKey][]plane.State
 	membersMu    sync.RWMutex
 	labelsMu     sync.RWMutex
 	statesMu     sync.RWMutex
 )
+
+type projectCacheKey struct {
+	workspace string
+	projectID string
+}
 
 // ResolveAssignees converts display names/emails to user UUIDs
 // Accepts formats: @display_name, display_name, email, or UUID
@@ -131,18 +136,20 @@ func (c *Client) ResolveState(projectID string, stateName string) (string, error
 
 // getCachedWorkspaceMembers returns cached workspace members or fetches them
 func (c *Client) getCachedWorkspaceMembers() ([]plane.User, error) {
+	cacheKey := c.Workspace
+
 	membersMu.RLock()
-	if membersCache != nil {
+	if members, ok := membersCache[cacheKey]; ok {
 		defer membersMu.RUnlock()
-		return membersCache, nil
+		return members, nil
 	}
 	membersMu.RUnlock()
 
 	membersMu.Lock()
 	defer membersMu.Unlock()
 
-	if membersCache != nil {
-		return membersCache, nil
+	if members, ok := membersCache[cacheKey]; ok {
+		return members, nil
 	}
 
 	members, err := c.GetWorkspaceMembers()
@@ -150,24 +157,32 @@ func (c *Client) getCachedWorkspaceMembers() ([]plane.User, error) {
 		return nil, err
 	}
 
-	membersCache = members
-	return membersCache, nil
+	if membersCache == nil {
+		membersCache = make(map[string][]plane.User)
+	}
+	membersCache[cacheKey] = members
+	return membersCache[cacheKey], nil
 }
 
 // getCachedProjectLabels returns cached project labels or fetches them
 func (c *Client) getCachedProjectLabels(projectID string) ([]plane.Label, error) {
+	cacheKey := projectCacheKey{
+		workspace: c.Workspace,
+		projectID: projectID,
+	}
+
 	labelsMu.RLock()
-	if labelsCache != nil {
+	if labels, ok := labelsCache[cacheKey]; ok {
 		defer labelsMu.RUnlock()
-		return labelsCache, nil
+		return labels, nil
 	}
 	labelsMu.RUnlock()
 
 	labelsMu.Lock()
 	defer labelsMu.Unlock()
 
-	if labelsCache != nil {
-		return labelsCache, nil
+	if labels, ok := labelsCache[cacheKey]; ok {
+		return labels, nil
 	}
 
 	labels, err := c.ListLabels(projectID)
@@ -175,24 +190,32 @@ func (c *Client) getCachedProjectLabels(projectID string) ([]plane.Label, error)
 		return nil, err
 	}
 
-	labelsCache = labels
-	return labelsCache, nil
+	if labelsCache == nil {
+		labelsCache = make(map[projectCacheKey][]plane.Label)
+	}
+	labelsCache[cacheKey] = labels
+	return labelsCache[cacheKey], nil
 }
 
 // getCachedProjectStates returns cached project states or fetches them
 func (c *Client) getCachedProjectStates(projectID string) ([]plane.State, error) {
+	cacheKey := projectCacheKey{
+		workspace: c.Workspace,
+		projectID: projectID,
+	}
+
 	statesMu.RLock()
-	if statesCache != nil {
+	if states, ok := statesCache[cacheKey]; ok {
 		defer statesMu.RUnlock()
-		return statesCache, nil
+		return states, nil
 	}
 	statesMu.RUnlock()
 
 	statesMu.Lock()
 	defer statesMu.Unlock()
 
-	if statesCache != nil {
-		return statesCache, nil
+	if states, ok := statesCache[cacheKey]; ok {
+		return states, nil
 	}
 
 	states, err := c.ListStates(projectID)
@@ -200,8 +223,11 @@ func (c *Client) getCachedProjectStates(projectID string) ([]plane.State, error)
 		return nil, err
 	}
 
-	statesCache = states
-	return statesCache, nil
+	if statesCache == nil {
+		statesCache = make(map[projectCacheKey][]plane.State)
+	}
+	statesCache[cacheKey] = states
+	return statesCache[cacheKey], nil
 }
 
 // ClearResolverCache clears all cached resolver data

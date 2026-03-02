@@ -5,9 +5,9 @@ package workspace
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/rohithmahesh3/plane-cli/internal/api"
@@ -69,19 +69,17 @@ func TestWorkspaceMembersSearchIntegration(t *testing.T) {
 	require.NotEmpty(t, members)
 
 	target := members[0]
-	querySource := target.DisplayName
-	if querySource == "" {
-		querySource = target.Email
+	query := target.ID
+	if query == "" {
+		query = target.Email
 	}
-	require.NotEmpty(t, querySource)
-
-	query := strings.ToLower(querySource)
-	if len(query) > 3 {
-		query = query[:3]
+	if query == "" {
+		query = target.DisplayName
 	}
+	require.NotEmpty(t, query)
 
 	memberSearch = query
-	memberExact = false
+	memberExact = true
 	memberLimit = 0
 	t.Cleanup(func() {
 		memberSearch = ""
@@ -94,7 +92,13 @@ func TestWorkspaceMembersSearchIntegration(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-	assert.Contains(t, output, target.ID)
+
+	var results []struct {
+		ID string `json:"id"`
+	}
+	require.NoError(t, json.Unmarshal([]byte(output), &results))
+	require.Len(t, results, 1)
+	assert.Equal(t, target.ID, results[0].ID)
 }
 
 func captureStdout(t *testing.T, fn func()) string {
