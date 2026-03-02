@@ -8,7 +8,7 @@ import (
 
 // ListLinks retrieves all links for an issue
 func (c *Client) ListLinks(projectID, issueID string) ([]plane.Link, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/%s/links/", c.Workspace, projectID, issueID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/links/", c.Workspace, projectID, issueID)
 
 	var response struct {
 		Results []plane.Link `json:"results"`
@@ -23,7 +23,7 @@ func (c *Client) ListLinks(projectID, issueID string) ([]plane.Link, error) {
 
 // GetLink retrieves a specific link
 func (c *Client) GetLink(projectID, issueID, linkID string) (*plane.Link, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/%s/links/%s/", c.Workspace, projectID, issueID, linkID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/links/%s/", c.Workspace, projectID, issueID, linkID)
 
 	var link plane.Link
 	if err := c.Get(path, nil, &link); err != nil {
@@ -35,7 +35,7 @@ func (c *Client) GetLink(projectID, issueID, linkID string) (*plane.Link, error)
 
 // CreateLink adds a new link to an issue
 func (c *Client) CreateLink(projectID, issueID string, req plane.CreateLinkRequest) (*plane.Link, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/%s/links/", c.Workspace, projectID, issueID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/links/", c.Workspace, projectID, issueID)
 
 	var link plane.Link
 	if err := c.Post(path, req, &link); err != nil {
@@ -47,7 +47,7 @@ func (c *Client) CreateLink(projectID, issueID string, req plane.CreateLinkReque
 
 // UpdateLink updates an existing link
 func (c *Client) UpdateLink(projectID, issueID, linkID string, req plane.UpdateLinkRequest) (*plane.Link, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/%s/links/%s/", c.Workspace, projectID, issueID, linkID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/links/%s/", c.Workspace, projectID, issueID, linkID)
 
 	var link plane.Link
 	if err := c.Patch(path, req, &link); err != nil {
@@ -59,7 +59,7 @@ func (c *Client) UpdateLink(projectID, issueID, linkID string, req plane.UpdateL
 
 // DeleteLink removes a link from an issue
 func (c *Client) DeleteLink(projectID, issueID, linkID string) error {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/%s/links/%s/", c.Workspace, projectID, issueID, linkID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/links/%s/", c.Workspace, projectID, issueID, linkID)
 	return c.Delete(path)
 }
 
@@ -122,7 +122,7 @@ func (c *Client) DeleteIssueType(projectID, typeID string) error {
 
 // ListComments retrieves all comments for an issue
 func (c *Client) ListComments(projectID, issueID string) ([]plane.Comment, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/%s/comments/", c.Workspace, projectID, issueID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/comments/", c.Workspace, projectID, issueID)
 
 	var response struct {
 		Results []plane.Comment `json:"results"`
@@ -137,7 +137,7 @@ func (c *Client) ListComments(projectID, issueID string) ([]plane.Comment, error
 
 // GetComment retrieves a specific comment
 func (c *Client) GetComment(projectID, issueID, commentID string) (*plane.Comment, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/%s/comments/%s/", c.Workspace, projectID, issueID, commentID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/comments/%s/", c.Workspace, projectID, issueID, commentID)
 
 	var comment plane.Comment
 	if err := c.Get(path, nil, &comment); err != nil {
@@ -149,7 +149,7 @@ func (c *Client) GetComment(projectID, issueID, commentID string) (*plane.Commen
 
 // CreateComment adds a new comment to an issue
 func (c *Client) CreateComment(projectID, issueID string, req plane.CreateCommentRequest) (*plane.Comment, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/%s/comments/", c.Workspace, projectID, issueID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/comments/", c.Workspace, projectID, issueID)
 
 	var comment plane.Comment
 	if err := c.Post(path, req, &comment); err != nil {
@@ -161,7 +161,7 @@ func (c *Client) CreateComment(projectID, issueID string, req plane.CreateCommen
 
 // UpdateComment updates an existing comment
 func (c *Client) UpdateComment(projectID, issueID, commentID string, req plane.UpdateCommentRequest) (*plane.Comment, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/%s/comments/%s/", c.Workspace, projectID, issueID, commentID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/comments/%s/", c.Workspace, projectID, issueID, commentID)
 
 	var comment plane.Comment
 	if err := c.Patch(path, req, &comment); err != nil {
@@ -173,6 +173,6 @@ func (c *Client) UpdateComment(projectID, issueID, commentID string, req plane.U
 
 // DeleteComment removes a comment from an issue
 func (c *Client) DeleteComment(projectID, issueID, commentID string) error {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/%s/comments/%s/", c.Workspace, projectID, issueID, commentID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/comments/%s/", c.Workspace, projectID, issueID, commentID)
 	return c.Delete(path)
 }

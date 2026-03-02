@@ -21,7 +21,7 @@ type IssueListOptions struct {
 }
 
 func (c *Client) ListIssues(projectID string, opts IssueListOptions) ([]plane.Issue, *Pagination, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/", c.Workspace, projectID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/", c.Workspace, projectID)
 
 	query := url.Values{}
 	query.Set("expand", "assignees,state")
@@ -64,7 +64,7 @@ func (c *Client) ListIssues(projectID string, opts IssueListOptions) ([]plane.Is
 }
 
 func (c *Client) GetIssue(projectID, issueID string) (*plane.Issue, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/%s/", c.Workspace, projectID, issueID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/", c.Workspace, projectID, issueID)
 
 	query := url.Values{}
 	query.Set("expand", "assignees,state,labels")
@@ -78,7 +78,7 @@ func (c *Client) GetIssue(projectID, issueID string) (*plane.Issue, error) {
 }
 
 func (c *Client) GetIssueByIdentifier(projectID string, sequenceID int) (*plane.Issue, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/?sequence_id=%d", c.Workspace, projectID, sequenceID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/?sequence_id=%d", c.Workspace, projectID, sequenceID)
 
 	var response Response
 	if err := c.Get(path, nil, &response); err != nil {
@@ -98,7 +98,7 @@ func (c *Client) GetIssueByIdentifier(projectID string, sequenceID int) (*plane.
 }
 
 func (c *Client) CreateIssue(projectID string, req plane.CreateIssueRequest) (*plane.Issue, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/", c.Workspace, projectID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/", c.Workspace, projectID)
 
 	var issue plane.Issue
 	if err := c.Post(path, req, &issue); err != nil {
@@ -109,7 +109,7 @@ func (c *Client) CreateIssue(projectID string, req plane.CreateIssueRequest) (*p
 }
 
 func (c *Client) UpdateIssue(projectID, issueID string, req plane.UpdateIssueRequest) (*plane.Issue, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/%s/", c.Workspace, projectID, issueID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/", c.Workspace, projectID, issueID)
 
 	var issue plane.Issue
 	if err := c.Patch(path, req, &issue); err != nil {
@@ -120,15 +120,15 @@ func (c *Client) UpdateIssue(projectID, issueID string, req plane.UpdateIssueReq
 }
 
 func (c *Client) DeleteIssue(projectID, issueID string) error {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/%s/", c.Workspace, projectID, issueID)
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/", c.Workspace, projectID, issueID)
 	return c.Delete(path)
 }
 
 // SearchIssues searches for issues across the workspace
-// Endpoint: GET /api/v1/workspaces/{workspace_slug}/issues/search/
+// Endpoint: GET /api/v1/workspaces/{workspace_slug}/work-items/search/
 // Returns: {"issues": [...]}
 func (c *Client) SearchIssues(query string) ([]plane.Issue, error) {
-	path := fmt.Sprintf("/workspaces/%s/issues/search/", c.Workspace)
+	path := fmt.Sprintf("/workspaces/%s/work-items/search/", c.Workspace)
 
 	params := url.Values{}
 	params.Set("search", query)

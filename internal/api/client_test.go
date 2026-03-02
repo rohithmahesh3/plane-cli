@@ -233,7 +233,7 @@ func TestClient_ListIssues(t *testing.T) {
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/api/v1/workspaces/test-workspace/projects/proj-1/issues/", r.URL.Path)
+		assert.Equal(t, "/api/v1/workspaces/test-workspace/projects/proj-1/work-items/", r.URL.Path)
 
 		// Check query params
 		query := r.URL.Query()
@@ -277,7 +277,7 @@ func TestClient_ListIssues(t *testing.T) {
 func TestClient_CreateIssue(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "POST", r.Method)
-		assert.Equal(t, "/api/v1/workspaces/test-workspace/projects/proj-1/issues/", r.URL.Path)
+		assert.Equal(t, "/api/v1/workspaces/test-workspace/projects/proj-1/work-items/", r.URL.Path)
 
 		var req plane.CreateIssueRequest
 		err := json.NewDecoder(r.Body).Decode(&req)
@@ -320,7 +320,7 @@ func TestClient_CreateIssue(t *testing.T) {
 func TestClient_DeleteIssue(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "DELETE", r.Method)
-		assert.Equal(t, "/api/v1/workspaces/test-workspace/projects/proj-1/issues/issue-1/", r.URL.Path)
+		assert.Equal(t, "/api/v1/workspaces/test-workspace/projects/proj-1/work-items/issue-1/", r.URL.Path)
 		w.WriteHeader(http.StatusNoContent)
 	}))
 	defer server.Close()
