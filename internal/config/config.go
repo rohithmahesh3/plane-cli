@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	AppName         = "plane-cli"
-	ConfigFileName  = "config"
-	KeyringService  = "plane-cli"
-	KeyringUser     = "api-key"
-	DefaultAPIHost  = "https://api.plane.so"
+	AppName        = "plane-cli"
+	ConfigFileName = "config"
+	KeyringService = "plane-cli"
+	KeyringUser    = "api-key"
+	DefaultAPIHost = "https://api.plane.so"
 )
 
 type Config struct {
@@ -54,8 +54,16 @@ func InitConfig() error {
 	viper.SetDefault("api_host", DefaultAPIHost)
 
 	if err := viper.ReadInConfig(); err != nil {
+		// Only return error if it's not a config file not found error
+		// It's okay if the config file doesn't exist yet
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			return fmt.Errorf("failed to read config: %w", err)
+			// If the config file was explicitly set but doesn't exist, that's also okay
+			// The file will be created when SaveConfig is called
+			if cfgFile != "" && os.IsNotExist(err) {
+				// Continue with defaults
+			} else {
+				return fmt.Errorf("failed to read config: %w", err)
+			}
 		}
 	}
 

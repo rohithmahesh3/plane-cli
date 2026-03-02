@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	commentText  string
+	commentText   string
 	commentAccess string
 )
 

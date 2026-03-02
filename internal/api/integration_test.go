@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package api
@@ -92,8 +93,8 @@ func TestIntegration_ProjectLifecycle(t *testing.T) {
 
 	// Create a test project
 	createReq := plane.CreateProjectRequest{
-		Name:       "CLI Test Project",
-		Identifier: "CLITEST",
+		Name:        "CLI Test Project",
+		Identifier:  "CLITEST",
 		Description: "Test project created by CLI integration tests",
 	}
 

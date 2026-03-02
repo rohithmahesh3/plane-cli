@@ -1,4 +1,4 @@
-.PHONY: build test install clean fmt vet lint
+.PHONY: build test install clean fmt vet lint setup-hooks
 
 BINARY_NAME=plane
 VERSION=$(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
@@ -42,3 +42,13 @@ build-all:
 	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)-linux-amd64 main.go
 	GOOS=linux GOARCH=arm64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)-linux-arm64 main.go
 	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)-windows-amd64.exe main.go
+
+# Pre-commit hooks setup
+setup-hooks:
+	@echo "Setting up pre-commit hooks..."
+	@command -v pre-commit >/dev/null 2>&1 || { echo "pre-commit not found. Installing..."; pip install pre-commit; }
+	pre-commit install
+	@echo "Pre-commit hooks installed successfully!"
+
+# Run all checks (fmt, vet, lint, test)
+check: fmt vet lint test

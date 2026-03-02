@@ -125,7 +125,7 @@ func runTypeCreate(cmd *cobra.Command, args []string) error {
 		prompt := &survey.Input{
 			Message: "Description (optional):",
 		}
-		survey.AskOne(prompt, &typeDescription)
+		_ = survey.AskOne(prompt, &typeDescription)
 	}
 
 	client, err := api.NewClient()

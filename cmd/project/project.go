@@ -68,7 +68,7 @@ func init() {
 	ProjectCmd.AddCommand(infoCmd)
 	ProjectCmd.AddCommand(deleteCmd)
 	ProjectCmd.AddCommand(membersCmd)
-	
+
 	listCmd.Flags().BoolVarP(&allFlag, "all", "a", false, "List all accessible projects")
 }
 
@@ -77,26 +77,26 @@ func runList(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	projects, err := client.ListProjects()
 	if err != nil {
 		return err
 	}
-	
+
 	if len(projects) == 0 {
 		output.Info("No projects found")
 		return nil
 	}
-	
+
 	formatter := output.NewFormatter(config.Cfg.OutputFormat, false)
-	
+
 	type projectOutput struct {
 		ID         string `table:"ID" json:"id"`
 		Identifier string `table:"IDENTIFIER" json:"identifier"`
 		Name       string `table:"NAME" json:"name"`
 		Default    string `table:"DEFAULT" json:"default,omitempty"`
 	}
-	
+
 	var outputs []projectOutput
 	for _, p := range projects {
 		isDefault := ""
@@ -110,13 +110,13 @@ func runList(cmd *cobra.Command, args []string) error {
 			Default:    isDefault,
 		})
 	}
-	
+
 	return formatter.Print(outputs)
 }
 
 func runCreate(cmd *cobra.Command, args []string) error {
 	var name, identifier string
-	
+
 	if len(args) >= 1 {
 		name = args[0]
 	} else {
@@ -127,18 +127,18 @@ func runCreate(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	}
-	
+
 	if name == "" {
 		return fmt.Errorf("project name is required")
 	}
-	
+
 	// Generate default identifier from name
 	defaultIdentifier := strings.ToUpper(strings.ReplaceAll(name, " ", "-"))
 	defaultIdentifier = strings.ReplaceAll(defaultIdentifier, "_", "-")
 	if len(defaultIdentifier) > 10 {
 		defaultIdentifier = defaultIdentifier[:10]
 	}
-	
+
 	prompt := &survey.Input{
 		Message: "Project identifier:",
 		Default: defaultIdentifier,
@@ -147,16 +147,16 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	if err := survey.AskOne(prompt, &identifier); err != nil {
 		return err
 	}
-	
+
 	if identifier == "" {
 		identifier = defaultIdentifier
 	}
-	
+
 	client, err := api.NewClient()
 	if err != nil {
 		return err
 	}
-	
+
 	project, err := client.CreateProject(plane.CreateProjectRequest{
 		Name:       name,
 		Identifier: identifier,
@@ -164,9 +164,9 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	output.Success(fmt.Sprintf("Created project '%s' (%s)", project.Name, project.Identifier))
-	
+
 	// Ask if user wants to set as default
 	var setDefault bool
 	confirmPrompt := &survey.Confirm{
@@ -176,7 +176,7 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	if err := survey.AskOne(confirmPrompt, &setDefault); err != nil {
 		return err
 	}
-	
+
 	if setDefault {
 		config.Cfg.DefaultProject = project.ID
 		if err := config.SaveConfig(); err != nil {
@@ -184,7 +184,7 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		}
 		output.Info("Set as default project")
 	}
-	
+
 	return nil
 }
 
@@ -193,28 +193,28 @@ func runInfo(cmd *cobra.Command, args []string) error {
 	if len(args) > 0 {
 		projectID = args[0]
 	}
-	
+
 	if projectID == "" {
 		return fmt.Errorf("no project specified. Use --project flag or provide project ID")
 	}
-	
+
 	client, err := api.NewClient()
 	if err != nil {
 		return err
 	}
-	
+
 	project, err := client.GetProject(projectID)
 	if err != nil {
 		return err
 	}
-	
+
 	formatter := output.NewFormatter(config.Cfg.OutputFormat, false)
 	return formatter.Print(project)
 }
 
 func runDelete(cmd *cobra.Command, args []string) error {
 	projectID := args[0]
-	
+
 	// Confirm deletion
 	var confirm bool
 	prompt := &survey.Confirm{
@@ -224,21 +224,21 @@ func runDelete(cmd *cobra.Command, args []string) error {
 	if err := survey.AskOne(prompt, &confirm); err != nil {
 		return err
 	}
-	
+
 	if !confirm {
 		output.Info("Deletion cancelled")
 		return nil
 	}
-	
+
 	client, err := api.NewClient()
 	if err != nil {
 		return err
 	}
-	
+
 	if err := client.DeleteProject(projectID); err != nil {
 		return err
 	}
-	
+
 	output.Success(fmt.Sprintf("Deleted project %s", projectID))
 	return nil
 }
@@ -248,21 +248,21 @@ func runMembers(cmd *cobra.Command, args []string) error {
 	if len(args) > 0 {
 		projectID = args[0]
 	}
-	
+
 	if projectID == "" {
 		return fmt.Errorf("no project specified. Use --project flag or provide project ID")
 	}
-	
+
 	client, err := api.NewClient()
 	if err != nil {
 		return err
 	}
-	
+
 	members, err := client.GetProjectMembers(projectID)
 	if err != nil {
 		return err
 	}
-	
+
 	formatter := output.NewFormatter(config.Cfg.OutputFormat, false)
 	return formatter.Print(members)
 }

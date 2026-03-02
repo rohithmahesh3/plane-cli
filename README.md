@@ -218,6 +218,7 @@ Supported features:
 
 - Go 1.21 or higher
 - Git
+- pre-commit (optional but recommended)
 
 ### Build
 
@@ -235,6 +236,30 @@ make test
 
 ```bash
 make install
+```
+
+### Setup Pre-commit Hooks
+
+We use pre-commit hooks to ensure code quality. Install pre-commit and the hooks:
+
+```bash
+# Install pre-commit (if not already installed)
+pip install pre-commit
+
+# Install the git hooks
+make setup-hooks
+```
+
+The pre-commit hooks will automatically run on every commit and check:
+- Code formatting (`go fmt`)
+- Static analysis (`go vet`)
+- Linting (`golangci-lint`)
+- Tests (`go test`)
+
+You can also run all checks manually:
+
+```bash
+make check  # Runs fmt, vet, lint, and test
 ```
 
 ## Project Structure

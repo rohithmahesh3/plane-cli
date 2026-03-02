@@ -29,18 +29,18 @@ type IconProp struct {
 }
 
 type Issue struct {
-	ID          string     `json:"id"`
-	SequenceID  int        `json:"sequence_id"`
-	Name        string     `json:"name"`
-	Description string     `json:"description,omitempty"`
-	State       string     `json:"state"`
-	Priority    string     `json:"priority"`
-	Assignees   []User     `json:"assignees,omitempty"`
-	Labels      []string   `json:"labels,omitempty"`
-	CycleID     string     `json:"cycle_id,omitempty"`
-	ModuleID    string     `json:"module_id,omitempty"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
+	ID          string    `json:"id"`
+	SequenceID  int       `json:"sequence_id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description,omitempty"`
+	State       string    `json:"state"`
+	Priority    string    `json:"priority"`
+	Assignees   []User    `json:"assignees,omitempty"`
+	Labels      []string  `json:"labels,omitempty"`
+	CycleID     string    `json:"cycle_id,omitempty"`
+	ModuleID    string    `json:"module_id,omitempty"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type State struct {
@@ -67,19 +67,19 @@ type Label struct {
 }
 
 type Cycle struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description,omitempty"`
-	StartDate   string    `json:"start_date,omitempty"`
-	EndDate     string    `json:"end_date,omitempty"`
-	Status      string    `json:"status,omitempty"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	StartDate   string `json:"start_date,omitempty"`
+	EndDate     string `json:"end_date,omitempty"`
+	Status      string `json:"status,omitempty"`
 }
 
 type Module struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description,omitempty"`
-	Status      string    `json:"status,omitempty"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	Status      string `json:"status,omitempty"`
 }
 
 type CreateIssueRequest struct {

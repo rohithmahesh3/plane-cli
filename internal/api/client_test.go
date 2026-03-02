@@ -62,10 +62,10 @@ func TestClient_NewRequest(t *testing.T) {
 		wantHeader map[string]string
 	}{
 		{
-			name:   "GET request without body",
-			method: "GET",
-			path:   "/workspaces/",
-			body:   nil,
+			name:    "GET request without body",
+			method:  "GET",
+			path:    "/workspaces/",
+			body:    nil,
 			wantErr: false,
 			wantHeader: map[string]string{
 				"X-API-Key":    "test-api-key",
@@ -142,7 +142,8 @@ func TestClient_Do(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(tt.statusCode)
-				json.NewEncoder(w).Encode(tt.response)
+				err := json.NewEncoder(w).Encode(tt.response)
+				require.NoError(t, err)
 			}))
 			defer server.Close()
 
@@ -170,41 +171,18 @@ func TestClient_Do(t *testing.T) {
 }
 
 func TestClient_ListWorkspaces(t *testing.T) {
-	mockWorkspaces := []plane.Workspace{
-		{
-			ID:   "ws-1",
-			Name: "Workspace 1",
-			Slug: "workspace-1",
-		},
-		{
-			ID:   "ws-2",
-			Name: "Workspace 2",
-			Slug: "workspace-2",
-		},
-	}
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/api/v1/workspaces/", r.URL.Path)
-		assert.Equal(t, "test-api-key", r.Header.Get("X-API-Key"))
-
-		response := Response{
-			Results: mustMarshal(mockWorkspaces),
-		}
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response)
-	}))
-	defer server.Close()
-
+	// Since ListWorkspaces now returns an error (API doesn't support it),
+	// we just verify that it returns the expected error
 	client := &Client{
 		HTTPClient: &http.Client{Timeout: DefaultTimeout},
-		BaseURL:    server.URL,
+		BaseURL:    "https://api.plane.so",
 		APIKey:     "test-api-key",
 	}
 
 	workspaces, err := client.ListWorkspaces()
-	require.NoError(t, err)
-	assert.Len(t, workspaces, 2)
-	assert.Equal(t, "Workspace 1", workspaces[0].Name)
+	require.Error(t, err)
+	assert.Nil(t, workspaces)
+	assert.Contains(t, err.Error(), "workspace listing is not available")
 }
 
 func TestClient_ListProjects(t *testing.T) {
@@ -220,10 +198,11 @@ func TestClient_ListProjects(t *testing.T) {
 		assert.Equal(t, "/api/v1/workspaces/test-workspace/projects/", r.URL.Path)
 
 		response := Response{
-			Results: mustMarshal(mockProjects),
+			Results: mustMarshal(t, mockProjects),
 		}
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response)
+		err := json.NewEncoder(w).Encode(response)
+		require.NoError(t, err)
 	}))
 	defer server.Close()
 
@@ -260,7 +239,7 @@ func TestClient_ListIssues(t *testing.T) {
 		assert.Equal(t, "high", query.Get("priority"))
 
 		response := Response{
-			Results:       mustMarshal(mockIssues),
+			Results: mustMarshal(t, mockIssues),
 			Pagination: Pagination{
 				NextCursor:      "20:1:0",
 				NextPageResults: false,
@@ -268,7 +247,8 @@ func TestClient_ListIssues(t *testing.T) {
 			},
 		}
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response)
+		err := json.NewEncoder(w).Encode(response)
+		require.NoError(t, err)
 	}))
 	defer server.Close()
 
@@ -312,7 +292,8 @@ func TestClient_CreateIssue(t *testing.T) {
 		}
 
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(response)
+		err = json.NewEncoder(w).Encode(response)
+		require.NoError(t, err)
 	}))
 	defer server.Close()
 
@@ -353,7 +334,8 @@ func TestClient_DeleteIssue(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func mustMarshal(v interface{}) []byte {
-	data, _ := json.Marshal(v)
+func mustMarshal(t *testing.T, v interface{}) []byte {
+	data, err := json.Marshal(v)
+	require.NoError(t, err)
 	return data
 }

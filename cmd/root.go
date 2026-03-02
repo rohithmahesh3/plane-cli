@@ -17,10 +17,10 @@ import (
 )
 
 var (
-	version   = "dev"
-	commit     = "none"
-	date       = "unknown"
-	
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+
 	workspaceSlug string
 	projectID     string
 	outputFmt     string
@@ -47,15 +47,15 @@ Get started:
 		if cmd.Name() == "login" || cmd.Name() == "version" || cmd.Name() == "completion" {
 			return nil
 		}
-		
+
 		if configFile != "" {
 			cfg.SetConfigFile(configFile)
 		}
-		
+
 		if err := cfg.InitConfig(); err != nil {
 			return fmt.Errorf("failed to initialize config: %w", err)
 		}
-		
+
 		// Override config with flags
 		if workspaceSlug != "" {
 			cfg.Cfg.DefaultWorkspace = workspaceSlug
@@ -66,7 +66,7 @@ Get started:
 		if outputFmt != "" {
 			cfg.Cfg.OutputFormat = outputFmt
 		}
-		
+
 		return nil
 	},
 }
@@ -81,7 +81,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&outputFmt, "output", "o", "", "Output format: table, json, yaml (overrides config)")
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
 	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "Config file path (default: ~/.config/plane-cli/config.yaml)")
-	
+
 	// Add subcommands
 	rootCmd.AddCommand(auth.AuthCmd)
 	rootCmd.AddCommand(workspace.WorkspaceCmd)
@@ -134,17 +134,18 @@ PowerShell:
 `,
 	DisableFlagsInUseLine: true,
 	ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
-	Args:                  cobra.ExactValidArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	Args:                  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+	RunE: func(cmd *cobra.Command, args []string) error {
 		switch args[0] {
 		case "bash":
-			rootCmd.GenBashCompletion(os.Stdout)
+			return rootCmd.GenBashCompletion(os.Stdout)
 		case "zsh":
-			rootCmd.GenZshCompletion(os.Stdout)
+			return rootCmd.GenZshCompletion(os.Stdout)
 		case "fish":
-			rootCmd.GenFishCompletion(os.Stdout, true)
+			return rootCmd.GenFishCompletion(os.Stdout, true)
 		case "powershell":
-			rootCmd.GenPowerShellCompletionWithDesc(os.Stdout)
+			return rootCmd.GenPowerShellCompletionWithDesc(os.Stdout)
 		}
+		return nil
 	},
 }

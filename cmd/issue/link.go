@@ -13,7 +13,6 @@ import (
 
 var (
 	linkTitle string
-	linkURL   string
 )
 
 func init() {
@@ -132,7 +131,7 @@ func runLinkAdd(cmd *cobra.Command, args []string) error {
 			Message: "Link title (optional):",
 			Help:    "A descriptive title for the link",
 		}
-		survey.AskOne(prompt, &linkTitle)
+		_ = survey.AskOne(prompt, &linkTitle)
 	}
 
 	client, err := api.NewClient()

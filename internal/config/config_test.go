@@ -63,7 +63,7 @@ func TestSaveConfig(t *testing.T) {
 func TestAPIKeyStorage(t *testing.T) {
 	// Note: This test uses the actual keyring
 	// In CI environments, this might fail without proper setup
-	
+
 	testKey := "test-api-key-12345"
 
 	// Set API key

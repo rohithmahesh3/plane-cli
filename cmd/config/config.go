@@ -8,11 +8,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	key   string
-	value string
-)
-
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Manage configuration",
@@ -50,7 +45,7 @@ func runGet(cmd *cobra.Command, args []string) error {
 		fmt.Printf("api_host: %s\n", config.Cfg.APIHost)
 		return nil
 	}
-	
+
 	key := args[0]
 	switch key {
 	case "workspace":
@@ -64,14 +59,14 @@ func runGet(cmd *cobra.Command, args []string) error {
 	default:
 		return fmt.Errorf("unknown config key: %s", key)
 	}
-	
+
 	return nil
 }
 
 func runSet(cmd *cobra.Command, args []string) error {
 	key := args[0]
 	value := args[1]
-	
+
 	switch key {
 	case "workspace":
 		config.Cfg.DefaultWorkspace = value
@@ -84,11 +79,11 @@ func runSet(cmd *cobra.Command, args []string) error {
 	default:
 		return fmt.Errorf("unknown config key: %s", key)
 	}
-	
+
 	if err := config.SaveConfig(); err != nil {
 		return err
 	}
-	
+
 	output.Success(fmt.Sprintf("Set %s to %s", key, value))
 	return nil
 }

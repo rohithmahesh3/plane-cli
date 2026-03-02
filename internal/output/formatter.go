@@ -14,16 +14,16 @@ import (
 )
 
 type Formatter struct {
-	Format    string
-	NoColor   bool
-	Wide      bool
+	Format  string
+	NoColor bool
+	Wide    bool
 }
 
 func NewFormatter(format string, noColor bool) *Formatter {
 	if noColor {
 		color.NoColor = true
 	}
-	
+
 	return &Formatter{
 		Format:  format,
 		NoColor: noColor,
@@ -57,11 +57,11 @@ func (f *Formatter) printYAML(data interface{}) error {
 
 func (f *Formatter) printTable(data interface{}) error {
 	val := reflect.ValueOf(data)
-	
+
 	if val.Kind() == reflect.Slice {
 		return f.printSliceTable(val)
 	}
-	
+
 	return f.printStructTable(val)
 }
 
@@ -70,10 +70,10 @@ func (f *Formatter) printSliceTable(val reflect.Value) error {
 		fmt.Println("No results found.")
 		return nil
 	}
-	
+
 	elem := val.Index(0)
 	headers := f.getHeaders(elem)
-	
+
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader(headers)
 	table.SetAutoWrapText(false)
@@ -87,12 +87,12 @@ func (f *Formatter) printSliceTable(val reflect.Value) error {
 	table.SetBorder(false)
 	table.SetTablePadding("\t")
 	table.SetNoWhiteSpace(true)
-	
+
 	for i := 0; i < val.Len(); i++ {
 		row := f.getRow(val.Index(i))
 		table.Append(row)
 	}
-	
+
 	table.Render()
 	return nil
 }
@@ -112,11 +112,11 @@ func (f *Formatter) printStructTable(val reflect.Value) error {
 	table.SetBorder(false)
 	table.SetTablePadding("\t")
 	table.SetNoWhiteSpace(true)
-	
+
 	row := f.getRow(val)
 	table.Append(row)
 	table.Render()
-	
+
 	return nil
 }
 
@@ -124,25 +124,25 @@ func (f *Formatter) getHeaders(val reflect.Value) []string {
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
-	
+
 	var headers []string
 	t := val.Type()
-	
+
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		tag := field.Tag.Get("table")
-		
+
 		if tag == "-" {
 			continue
 		}
-		
+
 		if tag != "" {
 			headers = append(headers, tag)
 		} else {
 			headers = append(headers, strings.ToUpper(field.Name[:1])+field.Name[1:])
 		}
 	}
-	
+
 	return headers
 }
 
@@ -150,21 +150,21 @@ func (f *Formatter) getRow(val reflect.Value) []string {
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
-	
+
 	var row []string
-	
+
 	for i := 0; i < val.NumField(); i++ {
 		field := val.Type().Field(i)
 		tag := field.Tag.Get("table")
-		
+
 		if tag == "-" {
 			continue
 		}
-		
+
 		fieldVal := val.Field(i)
 		row = append(row, f.formatValue(fieldVal))
 	}
-	
+
 	return row
 }
 
@@ -211,7 +211,7 @@ func (f *Formatter) formatValue(val reflect.Value) string {
 
 func (f *Formatter) formatTime(t time.Time) string {
 	duration := time.Since(t)
-	
+
 	if duration < time.Hour {
 		return "just now"
 	} else if duration < 24*time.Hour {
@@ -221,7 +221,7 @@ func (f *Formatter) formatTime(t time.Time) string {
 		days := int(duration.Hours() / 24)
 		return fmt.Sprintf("%dd ago", days)
 	}
-	
+
 	return t.Format("Jan 2, 2006")
 }
 

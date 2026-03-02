@@ -10,12 +10,12 @@ import (
 // This can be used to verify authentication and get user details
 func (c *Client) GetUserInfo() (*plane.User, error) {
 	path := "/users/me/"
-	
+
 	var user plane.User
 	if err := c.Get(path, nil, &user); err != nil {
 		return nil, err
 	}
-	
+
 	return &user, nil
 }
 
