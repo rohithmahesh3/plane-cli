@@ -4,7 +4,7 @@
 `cmd/` contains Cobra command implementations grouped by feature (`cmd/issue`, `cmd/workspace`, `cmd/project`). `internal/api/` contains Plane API clients, resolvers, and most test coverage. `internal/config/` manages config and keyring access. `internal/output/` handles table, JSON, and YAML rendering. Shared API types live in `pkg/plane/`. Build entrypoints are `main.go` and the `Makefile`.
 
 ## Build, Test, and Development Commands
-- `make build`: build the `plane` binary with version metadata.
+- `make build`: build the `plane-cli` binary with version metadata.
 - `make run`: build and run the CLI locally.
 - `make test`: run the full Go test suite.
 - `make check`: run `fmt`, `vet`, `lint`, and `test`.

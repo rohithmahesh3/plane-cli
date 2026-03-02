@@ -53,7 +53,7 @@ func NewClient() (*Client, error) {
 
 	baseURL := config.Cfg.APIHost
 	if baseURL == "" {
-		baseURL = config.DefaultAPIHost
+		return nil, fmt.Errorf("no API host configured. Run 'plane-cli auth login' to configure")
 	}
 
 	return &Client{

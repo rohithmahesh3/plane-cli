@@ -87,7 +87,14 @@ func runLogin(cmd *cobra.Command, args []string) error {
 	}
 
 	if apiHost == "" {
-		apiHost = config.DefaultAPIHost
+		prompt := &survey.Input{
+			Message: "Enter your Plane API host:",
+			Default: config.DefaultAPIHost,
+			Help:    "The URL of your Plane instance (e.g., https://api.plane.so)",
+		}
+		if err := survey.AskOne(prompt, &apiHost); err != nil {
+			return err
+		}
 	}
 
 	if workspace == "" {
