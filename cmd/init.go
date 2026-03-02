@@ -68,11 +68,12 @@ func runInit(cmd *cobra.Command, args []string) error {
 	}
 
 	settingsPath := filepath.Join(".", ".plane", "settings.yaml")
+	absSettingsPath, _ := filepath.Abs(settingsPath)
 	if _, err := os.Stat(settingsPath); err == nil {
 		if !initUpgrade {
 			var overwrite bool
 			if err := survey.AskOne(&survey.Confirm{
-				Message: ".plane/settings.yaml already exists. Overwrite?",
+				Message: fmt.Sprintf("%s already exists. Overwrite?", absSettingsPath),
 				Default: false,
 			}, &overwrite); err != nil {
 				return err
@@ -166,7 +167,9 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	output.Success("Created .plane/settings.yaml")
+	// Get absolute path for user feedback
+	absPath, _ := filepath.Abs(settingsPath)
+	output.Success(fmt.Sprintf("Created %s", absPath))
 
 	if !initSkipGitignore {
 		if err := handleGitignore(); err != nil {

@@ -35,6 +35,14 @@ func TestSaveConfig(t *testing.T) {
 	err := os.MkdirAll(configDir, 0755)
 	require.NoError(t, err)
 
+	// Change to temp directory to avoid loading local .plane/settings.yaml
+	originalWd, _ := os.Getwd()
+	defer func() {
+		_ = os.Chdir(originalWd)
+	}()
+	err = os.Chdir(tempDir)
+	require.NoError(t, err)
+
 	SetConfigFile(filepath.Join(configDir, ConfigFileName+".yaml"))
 
 	// Initialize
