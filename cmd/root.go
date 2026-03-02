@@ -6,6 +6,7 @@ import (
 
 	"github.com/rohithmahesh3/plane-cli/cmd/auth"
 	"github.com/rohithmahesh3/plane-cli/cmd/config"
+	"github.com/rohithmahesh3/plane-cli/cmd/context"
 	"github.com/rohithmahesh3/plane-cli/cmd/cycle"
 	"github.com/rohithmahesh3/plane-cli/cmd/epic"
 	"github.com/rohithmahesh3/plane-cli/cmd/intake"
@@ -101,6 +102,7 @@ func init() {
 	rootCmd.AddCommand(page.PageCmd)
 	rootCmd.AddCommand(intake.IntakeCmd)
 	rootCmd.AddCommand(config.ConfigCmd)
+	rootCmd.AddCommand(context.ContextCmd)
 	rootCmd.AddCommand(issuetype.TypeCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(completionCmd)
