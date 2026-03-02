@@ -24,6 +24,7 @@ func (c *Client) ListIssues(projectID string, opts IssueListOptions) ([]plane.Is
 	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/", c.Workspace, projectID)
 
 	query := url.Values{}
+	query.Set("expand", "assignees,state")
 	if opts.State != "" {
 		query.Set("state", opts.State)
 	}
@@ -65,8 +66,11 @@ func (c *Client) ListIssues(projectID string, opts IssueListOptions) ([]plane.Is
 func (c *Client) GetIssue(projectID, issueID string) (*plane.Issue, error) {
 	path := fmt.Sprintf("/workspaces/%s/projects/%s/issues/%s/", c.Workspace, projectID, issueID)
 
+	query := url.Values{}
+	query.Set("expand", "assignees,state,labels")
+
 	var issue plane.Issue
-	if err := c.Get(path, nil, &issue); err != nil {
+	if err := c.Get(path, query, &issue); err != nil {
 		return nil, err
 	}
 

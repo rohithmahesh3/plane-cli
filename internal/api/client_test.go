@@ -226,7 +226,9 @@ func TestClient_ListIssues(t *testing.T) {
 			SequenceID: 1,
 			Name:       "Test Issue",
 			Priority:   "high",
-			State:      "backlog-state-id",
+			State: plane.FlexibleState{
+				ID: "backlog-state-id",
+			},
 		},
 	}
 

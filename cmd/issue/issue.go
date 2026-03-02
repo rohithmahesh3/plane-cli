@@ -175,10 +175,15 @@ func runList(cmd *cobra.Command, args []string) error {
 	for _, issue := range issues {
 		assignee := "-"
 		if len(issue.Assignees) > 0 {
-			assignee = "@" + issue.Assignees[0].Username
+			u := issue.Assignees[0]
+			if u.DisplayName != "" {
+				assignee = "@" + u.DisplayName
+			} else if u.Username != "" {
+				assignee = "@" + u.Username
+			}
 		}
 
-		stateName := issue.State
+		stateName := issue.State.Name
 		if stateName == "" {
 			stateName = "-"
 		}
@@ -264,12 +269,22 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	resolvedAssignees, err := client.ResolveAssignees(projectID, issueAssignees)
+	if err != nil {
+		return fmt.Errorf("failed to resolve assignees: %w", err)
+	}
+
+	resolvedLabels, err := client.ResolveLabels(projectID, issueLabels)
+	if err != nil {
+		return fmt.Errorf("failed to resolve labels: %w", err)
+	}
+
 	req := plane.CreateIssueRequest{
 		Name:        issueTitle,
 		Description: issueDescription,
 		Priority:    issuePriority,
-		Assignees:   issueAssignees,
-		Labels:      issueLabels,
+		Assignees:   resolvedAssignees,
+		Labels:      resolvedLabels,
 	}
 
 	issue, err := client.CreateIssue(projectID, req)
@@ -338,13 +353,25 @@ func runEdit(cmd *cobra.Command, args []string) error {
 			req.Priority = issuePriority
 		}
 		if issueState != "" {
-			req.State = issueState
+			resolvedState, err := client.ResolveState(projectID, issueState)
+			if err != nil {
+				return fmt.Errorf("failed to resolve state: %w", err)
+			}
+			req.State = resolvedState
 		}
 		if len(issueAssignees) > 0 {
-			req.Assignees = issueAssignees
+			resolvedAssignees, err := client.ResolveAssignees(projectID, issueAssignees)
+			if err != nil {
+				return fmt.Errorf("failed to resolve assignees: %w", err)
+			}
+			req.Assignees = resolvedAssignees
 		}
 		if len(issueLabels) > 0 {
-			req.Labels = issueLabels
+			resolvedLabels, err := client.ResolveLabels(projectID, issueLabels)
+			if err != nil {
+				return fmt.Errorf("failed to resolve labels: %w", err)
+			}
+			req.Labels = resolvedLabels
 		}
 	}
 
@@ -423,7 +450,7 @@ func runSearch(cmd *cobra.Command, args []string) error {
 
 	var outputs []issueOutput
 	for _, issue := range issues {
-		stateName := issue.State
+		stateName := issue.State.Name
 		if stateName == "" {
 			stateName = "-"
 		}

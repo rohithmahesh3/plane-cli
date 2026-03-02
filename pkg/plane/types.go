@@ -29,18 +29,32 @@ type IconProp struct {
 }
 
 type Issue struct {
-	ID          string    `json:"id"`
-	SequenceID  int       `json:"sequence_id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description,omitempty"`
-	State       string    `json:"state"`
-	Priority    string    `json:"priority"`
-	Assignees   []User    `json:"assignees,omitempty"`
-	Labels      []string  `json:"labels,omitempty"`
-	CycleID     string    `json:"cycle_id,omitempty"`
-	ModuleID    string    `json:"module_id,omitempty"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID            string          `json:"id"`
+	SequenceID    int             `json:"sequence_id"`
+	Name          string          `json:"name"`
+	Description   string          `json:"description,omitempty"`
+	State         FlexibleState   `json:"state"`
+	Priority      string          `json:"priority"`
+	Assignees     []FlexibleUser  `json:"assignees,omitempty"`
+	Labels        []FlexibleLabel `json:"labels,omitempty"`
+	CycleID       string          `json:"cycle_id,omitempty"`
+	ModuleID      string          `json:"module_id,omitempty"`
+	Parent        string          `json:"parent,omitempty"`
+	StartDate     string          `json:"start_date,omitempty"`
+	TargetDate    string          `json:"target_date,omitempty"`
+	CreatedAt     time.Time       `json:"created_at"`
+	UpdatedAt     time.Time       `json:"updated_at"`
+	CreatedBy     string          `json:"created_by,omitempty"`
+	UpdatedBy     string          `json:"updated_by,omitempty"`
+	ProjectID     string          `json:"project,omitempty"`
+	WorkspaceID   string          `json:"workspace,omitempty"`
+	IsDraft       bool            `json:"is_draft,omitempty"`
+	ArchivedAt    string          `json:"archived_at,omitempty"`
+	Sequence      int             `json:"sequence,omitempty"`
+	SortOrder     float64         `json:"sort_order,omitempty"`
+	StateName     string          `json:"state_name,omitempty"`
+	StateGroup    string          `json:"state_group,omitempty"`
+	PriorityValue int             `json:"priority_value,omitempty"`
 }
 
 type State struct {

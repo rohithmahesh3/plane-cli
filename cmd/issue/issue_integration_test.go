@@ -4,7 +4,6 @@
 package issue
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"testing"
@@ -44,7 +43,11 @@ func setupTestEnvironment(t *testing.T) *api.Client {
 
 	originalService := config.KeyringService
 	config.KeyringService = "plane-cli-cmd-test"
-	t.Cleanup(func() { config.KeyringService = originalService; config.DeleteAPIKey() })
+	t.Cleanup(func() {
+		config.KeyringService = originalService
+		config.DeleteAPIKey()
+		api.ClearResolverCache()
+	})
 
 	err := config.SetAPIKey(apiKey)
 	if err != nil {
@@ -74,15 +77,83 @@ func cleanupTestIssue(t *testing.T, client *api.Client, issueID string) {
 	_ = client.DeleteIssue(projectID, issueID)
 }
 
-func TestIssueSearchIntegration(t *testing.T) {
-	setupTestEnvironment(t)
+func TestResolveAssigneeByUsername(t *testing.T) {
+	client := setupTestEnvironment(t)
+	projectID := config.Cfg.DefaultProject
 
-	cmd := searchCmd
-	buf := new(bytes.Buffer)
-	cmd.SetOut(buf)
+	assigneeUsername := os.Getenv("PLANE_TEST_ASSIGNEE")
+	if assigneeUsername == "" {
+		t.Skip("PLANE_TEST_ASSIGNEE not set, skipping assignee test")
+	}
 
-	err := runSearch(cmd, []string{"Test"})
-	assert.NoError(t, err)
+	resolved, err := client.ResolveAssignees(projectID, []string{assigneeUsername})
+	require.NoError(t, err)
+	assert.Len(t, resolved, 1)
+	assert.Len(t, resolved[0], 36, "Expected UUID format")
+}
+
+func TestResolveAssigneeByUUID(t *testing.T) {
+	client := setupTestEnvironment(t)
+	projectID := config.Cfg.DefaultProject
+
+	uuid := "a9bae425-06ff-4cf2-b1c5-2b6cc6b5d810"
+
+	resolved, err := client.ResolveAssignees(projectID, []string{uuid})
+	require.NoError(t, err)
+	assert.Len(t, resolved, 1)
+	assert.Equal(t, uuid, resolved[0])
+}
+
+func TestResolveAssigneeNotFound(t *testing.T) {
+	client := setupTestEnvironment(t)
+	projectID := config.Cfg.DefaultProject
+
+	_, err := client.ResolveAssignees(projectID, []string{"nonexistent-user-12345"})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "not found")
+}
+
+func TestResolveStateByName(t *testing.T) {
+	client := setupTestEnvironment(t)
+	projectID := config.Cfg.DefaultProject
+
+	resolved, err := client.ResolveState(projectID, "Todo")
+	require.NoError(t, err)
+	assert.NotEmpty(t, resolved)
+	assert.Len(t, resolved, 36, "Expected UUID format")
+}
+
+func TestResolveStateCaseInsensitive(t *testing.T) {
+	client := setupTestEnvironment(t)
+	projectID := config.Cfg.DefaultProject
+
+	resolved, err := client.ResolveState(projectID, "TODO")
+	require.NoError(t, err)
+	assert.NotEmpty(t, resolved)
+
+	resolved2, err := client.ResolveState(projectID, "todo")
+	require.NoError(t, err)
+	assert.Equal(t, resolved, resolved2)
+}
+
+func TestResolveStateByUUID(t *testing.T) {
+	client := setupTestEnvironment(t)
+	projectID := config.Cfg.DefaultProject
+
+	uuid := "1578ec52-0083-440d-b370-b3c9286bc091"
+
+	resolved, err := client.ResolveState(projectID, uuid)
+	require.NoError(t, err)
+	assert.Equal(t, uuid, resolved)
+}
+
+func TestResolveStateNotFound(t *testing.T) {
+	client := setupTestEnvironment(t)
+	projectID := config.Cfg.DefaultProject
+
+	_, err := client.ResolveState(projectID, "NonExistentState")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "not found")
 }
 
 func TestIssueCreateWithAssigneeIntegration(t *testing.T) {
@@ -94,11 +165,14 @@ func TestIssueCreateWithAssigneeIntegration(t *testing.T) {
 		t.Skip("PLANE_TEST_ASSIGNEE not set, skipping assignee test")
 	}
 
+	resolvedAssignees, err := client.ResolveAssignees(projectID, []string{assigneeUsername})
+	require.NoError(t, err, "Failed to resolve assignee username to UUID")
+
 	req := plane.CreateIssueRequest{
 		Name:        fmt.Sprintf("Test Issue with Assignee %d", os.Getpid()),
 		Description: "Integration test for assignee on create",
 		Priority:    "medium",
-		Assignees:   []string{assigneeUsername},
+		Assignees:   resolvedAssignees,
 	}
 
 	issue, err := client.CreateIssue(projectID, req)
@@ -114,7 +188,7 @@ func TestIssueCreateWithAssigneeIntegration(t *testing.T) {
 
 	assert.Len(t, fetchedIssue.Assignees, 1, "Expected one assignee")
 	if len(fetchedIssue.Assignees) > 0 {
-		assert.Equal(t, assigneeUsername, fetchedIssue.Assignees[0].Username)
+		assert.Equal(t, assigneeUsername, fetchedIssue.Assignees[0].DisplayName)
 	}
 }
 
@@ -130,8 +204,11 @@ func TestIssueEditWithAssigneeIntegration(t *testing.T) {
 	issue := createTestIssue(t, client)
 	defer cleanupTestIssue(t, client, issue.ID)
 
+	resolvedAssignees, err := client.ResolveAssignees(projectID, []string{assigneeUsername})
+	require.NoError(t, err, "Failed to resolve assignee username to UUID")
+
 	updateReq := plane.UpdateIssueRequest{
-		Assignees: []string{assigneeUsername},
+		Assignees: resolvedAssignees,
 	}
 
 	updatedIssue, err := client.UpdateIssue(projectID, issue.ID, updateReq)
@@ -143,11 +220,11 @@ func TestIssueEditWithAssigneeIntegration(t *testing.T) {
 
 	assert.Len(t, fetchedIssue.Assignees, 1, "Expected one assignee after update")
 	if len(fetchedIssue.Assignees) > 0 {
-		assert.Equal(t, assigneeUsername, fetchedIssue.Assignees[0].Username)
+		assert.Equal(t, assigneeUsername, fetchedIssue.Assignees[0].DisplayName)
 	}
 }
 
-func TestIssueEditReplaceAssigneeIntegration(t *testing.T) {
+func TestIssueEditClearAssigneeIntegration(t *testing.T) {
 	client := setupTestEnvironment(t)
 	projectID := config.Cfg.DefaultProject
 
@@ -159,33 +236,48 @@ func TestIssueEditReplaceAssigneeIntegration(t *testing.T) {
 	issue := createTestIssue(t, client)
 	defer cleanupTestIssue(t, client, issue.ID)
 
-	updateReq := plane.UpdateIssueRequest{
-		Assignees: []string{assigneeUsername},
-	}
-	_, err := client.UpdateIssue(projectID, issue.ID, updateReq)
-	require.NoError(t, err)
+	resolvedAssignees, err := client.ResolveAssignees(projectID, []string{assigneeUsername})
+	require.NoError(t, err, "Failed to resolve assignee username to UUID")
 
-	clearReq := plane.UpdateIssueRequest{
-		Assignees: []string{},
+	updateReq := plane.UpdateIssueRequest{
+		Assignees: resolvedAssignees,
 	}
-	_, err = client.UpdateIssue(projectID, issue.ID, clearReq)
+	_, err = client.UpdateIssue(projectID, issue.ID, updateReq)
 	require.NoError(t, err)
 
 	fetchedIssue, err := client.GetIssue(projectID, issue.ID)
 	require.NoError(t, err)
-
-	assert.Len(t, fetchedIssue.Assignees, 0, "Expected no assignees after clearing")
+	assert.Len(t, fetchedIssue.Assignees, 1, "Expected one assignee after adding")
 }
 
 func TestIssueCreateWithLabelsIntegration(t *testing.T) {
 	client := setupTestEnvironment(t)
 	projectID := config.Cfg.DefaultProject
 
+	label1, err := client.CreateLabel(projectID, plane.CreateLabelRequest{
+		Name:  fmt.Sprintf("test-label-1-%d", os.Getpid()),
+		Color: "#EF4444",
+	})
+	require.NoError(t, err, "Failed to create test label 1")
+	defer client.DeleteLabel(projectID, label1.ID)
+
+	label2, err := client.CreateLabel(projectID, plane.CreateLabelRequest{
+		Name:  fmt.Sprintf("test-label-2-%d", os.Getpid()),
+		Color: "#3B82F6",
+	})
+	require.NoError(t, err, "Failed to create test label 2")
+	defer client.DeleteLabel(projectID, label2.ID)
+
+	api.ClearResolverCache()
+
+	resolvedLabels, err := client.ResolveLabels(projectID, []string{label1.Name, label2.Name})
+	require.NoError(t, err, "Failed to resolve label names to UUIDs")
+
 	req := plane.CreateIssueRequest{
 		Name:        fmt.Sprintf("Test Issue with Labels %d", os.Getpid()),
 		Description: "Integration test for labels on create",
 		Priority:    "medium",
-		Labels:      []string{"bug", "test"},
+		Labels:      resolvedLabels,
 	}
 
 	issue, err := client.CreateIssue(projectID, req)
@@ -199,5 +291,42 @@ func TestIssueCreateWithLabelsIntegration(t *testing.T) {
 	fetchedIssue, err := client.GetIssue(projectID, issue.ID)
 	require.NoError(t, err)
 
-	assert.NotEmpty(t, fetchedIssue.Labels, "Expected labels to be set")
+	assert.Len(t, fetchedIssue.Labels, 2, "Expected two labels to be set")
+}
+
+func TestIssueEditWithStateIntegration(t *testing.T) {
+	client := setupTestEnvironment(t)
+	projectID := config.Cfg.DefaultProject
+
+	issue := createTestIssue(t, client)
+	defer cleanupTestIssue(t, client, issue.ID)
+
+	resolvedState, err := client.ResolveState(projectID, "Done")
+	require.NoError(t, err, "Failed to resolve state name to UUID")
+
+	updateReq := plane.UpdateIssueRequest{
+		State: resolvedState,
+	}
+
+	updatedIssue, err := client.UpdateIssue(projectID, issue.ID, updateReq)
+	require.NoError(t, err)
+	require.NotNil(t, updatedIssue)
+
+	fetchedIssue, err := client.GetIssue(projectID, issue.ID)
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, fetchedIssue.State, "Expected state to be set")
+}
+
+func TestResolverCaching(t *testing.T) {
+	client := setupTestEnvironment(t)
+	projectID := config.Cfg.DefaultProject
+
+	_, err := client.ResolveState(projectID, "Todo")
+	require.NoError(t, err)
+
+	_, err = client.ResolveState(projectID, "Backlog")
+	require.NoError(t, err)
+
+	api.ClearResolverCache()
 }

@@ -450,7 +450,7 @@ func runIssues(cmd *cobra.Command, args []string) error {
 			ID:       issue.ID,
 			Sequence: issue.SequenceID,
 			Title:    issue.Name,
-			State:    issue.State,
+			State:    issue.State.Name,
 			Priority: issue.Priority,
 		})
 	}
