@@ -126,7 +126,24 @@ func SaveConfig() error {
 	viper.Set("output_format", Cfg.OutputFormat)
 	viper.Set("api_host", Cfg.APIHost)
 
-	return viper.WriteConfig()
+	// If config file path is explicitly set, use it
+	if cfgFile != "" {
+		return viper.WriteConfigAs(cfgFile)
+	}
+
+	// Otherwise, construct the default config file path
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("failed to get home directory: %w", err)
+	}
+
+	configDir := filepath.Join(home, ".config", AppName)
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return fmt.Errorf("failed to create config directory: %w", err)
+	}
+
+	configFile := filepath.Join(configDir, ConfigFileName+".yaml")
+	return viper.WriteConfigAs(configFile)
 }
 
 func GetAPIKey() (string, error) {
