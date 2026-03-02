@@ -7,9 +7,14 @@ import (
 	"github.com/rohithmahesh3/plane-cli/cmd/auth"
 	"github.com/rohithmahesh3/plane-cli/cmd/config"
 	"github.com/rohithmahesh3/plane-cli/cmd/cycle"
+	"github.com/rohithmahesh3/plane-cli/cmd/epic"
+	"github.com/rohithmahesh3/plane-cli/cmd/intake"
 	"github.com/rohithmahesh3/plane-cli/cmd/issue"
+	"github.com/rohithmahesh3/plane-cli/cmd/label"
 	"github.com/rohithmahesh3/plane-cli/cmd/module"
+	"github.com/rohithmahesh3/plane-cli/cmd/page"
 	"github.com/rohithmahesh3/plane-cli/cmd/project"
+	"github.com/rohithmahesh3/plane-cli/cmd/state"
 	issuetype "github.com/rohithmahesh3/plane-cli/cmd/type"
 	"github.com/rohithmahesh3/plane-cli/cmd/workspace"
 	cfg "github.com/rohithmahesh3/plane-cli/internal/config"
@@ -87,8 +92,13 @@ func init() {
 	rootCmd.AddCommand(workspace.WorkspaceCmd)
 	rootCmd.AddCommand(project.ProjectCmd)
 	rootCmd.AddCommand(issue.IssueCmd)
+	rootCmd.AddCommand(state.StateCmd)
+	rootCmd.AddCommand(label.LabelCmd)
 	rootCmd.AddCommand(cycle.CycleCmd)
 	rootCmd.AddCommand(module.ModuleCmd)
+	rootCmd.AddCommand(epic.EpicCmd)
+	rootCmd.AddCommand(page.PageCmd)
+	rootCmd.AddCommand(intake.IntakeCmd)
 	rootCmd.AddCommand(config.ConfigCmd)
 	rootCmd.AddCommand(issuetype.TypeCmd)
 	rootCmd.AddCommand(versionCmd)

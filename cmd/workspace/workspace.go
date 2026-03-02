@@ -42,9 +42,18 @@ provide the workspace slug manually or configure it interactively.`,
 	RunE: runSwitch,
 }
 
+var membersCmd = &cobra.Command{
+	Use:     "members",
+	Aliases: []string{"users", "people"},
+	Short:   "List workspace members",
+	Long:    `Display all members of the current workspace.`,
+	RunE:    runMembers,
+}
+
 func init() {
 	WorkspaceCmd.AddCommand(infoCmd)
 	WorkspaceCmd.AddCommand(switchCmd)
+	WorkspaceCmd.AddCommand(membersCmd)
 }
 
 func runInfo(cmd *cobra.Command, args []string) error {
@@ -128,4 +137,42 @@ func runSwitch(cmd *cobra.Command, args []string) error {
 
 	output.Success(fmt.Sprintf("Switched to workspace '%s'", slug))
 	return nil
+}
+
+func runMembers(cmd *cobra.Command, args []string) error {
+	client, err := api.NewClient()
+	if err != nil {
+		return err
+	}
+
+	members, err := client.GetWorkspaceMembers()
+	if err != nil {
+		return err
+	}
+
+	if len(members) == 0 {
+		output.Info("No members found")
+		return nil
+	}
+
+	formatter := output.NewFormatter(config.Cfg.OutputFormat, false)
+
+	type memberOutput struct {
+		ID          string `table:"ID" json:"id"`
+		DisplayName string `table:"NAME" json:"display_name"`
+		Email       string `table:"EMAIL" json:"email"`
+		Role        int    `table:"ROLE" json:"role"`
+	}
+
+	var outputs []memberOutput
+	for _, m := range members {
+		outputs = append(outputs, memberOutput{
+			ID:          m.ID,
+			DisplayName: m.DisplayName,
+			Email:       m.Email,
+			Role:        0, // Role not provided in current User struct
+		})
+	}
+
+	return formatter.Print(outputs)
 }

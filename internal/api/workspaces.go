@@ -33,3 +33,15 @@ func (c *Client) GetWorkspace(slug string) (*plane.Workspace, error) {
 	return nil, fmt.Errorf("workspace details endpoint is not available in the Plane API. " +
 		"Use 'plane project list' to see projects in the configured workspace")
 }
+
+// GetWorkspaceMembers retrieves all members of the workspace
+func (c *Client) GetWorkspaceMembers() ([]plane.User, error) {
+	path := fmt.Sprintf("/workspaces/%s/members/", c.Workspace)
+
+	var members []plane.User
+	if err := c.Get(path, nil, &members); err != nil {
+		return nil, err
+	}
+
+	return members, nil
+}
