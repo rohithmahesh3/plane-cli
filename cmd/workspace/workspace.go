@@ -14,21 +14,30 @@ var WorkspaceCmd = &cobra.Command{
 	Use:     "workspace",
 	Aliases: []string{"ws"},
 	Short:   "Manage workspaces",
-	Long:    `List, view, and switch between Plane workspaces.`,
+	Long:    `Manage Plane workspaces.
+
+Note: The Plane API does not support listing or retrieving workspace details.
+You can only switch between configured workspaces.`,
 }
 
 var listCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
 	Short:   "List workspaces",
-	Long:    `List all workspaces you have access to.`,
-	RunE:    runList,
+	Long: `List all workspaces you have access to.
+
+Note: The Plane API does not have a workspace listing endpoint.
+This command will show the currently configured workspace.`,
+	RunE: runList,
 }
 
 var infoCmd = &cobra.Command{
 	Use:   "info [slug]",
 	Short: "Show workspace details",
-	Long:  `Display detailed information about a specific workspace.`,
+	Long:  `Display detailed information about a specific workspace.
+
+Note: The Plane API does not have a workspace details endpoint.
+This command will show the currently configured workspace.`,
 	Args:  cobra.MaximumNArgs(1),
 	RunE:  runInfo,
 }
@@ -36,7 +45,10 @@ var infoCmd = &cobra.Command{
 var switchCmd = &cobra.Command{
 	Use:   "switch [slug]",
 	Short: "Switch default workspace",
-	Long:  `Set the default workspace for all future commands.`,
+	Long:  `Set the default workspace for all future commands.
+
+Note: Since the Plane API doesn't support workspace listing, you need to
+provide the workspace slug manually or configure it interactively.`,
 	Args:  cobra.MaximumNArgs(1),
 	RunE:  runSwitch,
 }
@@ -48,48 +60,31 @@ func init() {
 }
 
 func runList(cmd *cobra.Command, args []string) error {
+	// The Plane API doesn't support listing workspaces
+	// Show the currently configured workspace instead
+	if config.Cfg.DefaultWorkspace == "" {
+		output.Warning("No workspace configured")
+		output.Info("Use 'plane workspace switch <slug>' to set a workspace")
+		return nil
+	}
+	
+	fmt.Printf("Current workspace: %s\n", config.Cfg.DefaultWorkspace)
+	fmt.Printf("API Host: %s\n", config.Cfg.APIHost)
+	
+	// Try to verify the workspace by listing projects
 	client, err := api.NewClient()
 	if err != nil {
 		return err
 	}
 	
-	workspaces, err := client.ListWorkspaces()
+	projects, err := client.ListProjects()
 	if err != nil {
-		return err
-	}
-	
-	if len(workspaces) == 0 {
-		output.Info("No workspaces found")
+		output.Warning(fmt.Sprintf("Could not verify workspace: %v", err))
 		return nil
 	}
 	
-	formatter := output.NewFormatter(config.Cfg.OutputFormat, false)
-	
-	// Add a marker for default workspace
-	type workspaceOutput struct {
-		ID          string `table:"ID" json:"id"`
-		Name        string `table:"NAME" json:"name"`
-		Slug        string `table:"SLUG" json:"slug"`
-		Description string `table:"DESCRIPTION" json:"description,omitempty"`
-		Default     string `table:"DEFAULT" json:"default,omitempty"`
-	}
-	
-	var outputs []workspaceOutput
-	for _, ws := range workspaces {
-		isDefault := ""
-		if ws.Slug == config.Cfg.DefaultWorkspace {
-			isDefault = "✓"
-		}
-		outputs = append(outputs, workspaceOutput{
-			ID:          ws.ID,
-			Name:        ws.Name,
-			Slug:        ws.Slug,
-			Description: ws.Description,
-			Default:     isDefault,
-		})
-	}
-	
-	return formatter.Print(outputs)
+	fmt.Printf("Accessible projects: %d\n", len(projects))
+	return nil
 }
 
 func runInfo(cmd *cobra.Command, args []string) error {
@@ -102,56 +97,44 @@ func runInfo(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no workspace specified. Use --workspace flag or provide workspace slug")
 	}
 	
+	// The Plane API doesn't have a workspace info endpoint
+	// Show what we have configured
+	fmt.Printf("Workspace: %s\n", slug)
+	fmt.Printf("API Host: %s\n", config.Cfg.APIHost)
+	fmt.Printf("Default Project: %s\n", config.Cfg.DefaultProject)
+	
+	// Try to list projects to verify access
 	client, err := api.NewClient()
 	if err != nil {
 		return err
 	}
 	
-	workspace, err := client.GetWorkspace(slug)
+	projects, err := client.ListProjects()
 	if err != nil {
-		return err
+		output.Warning(fmt.Sprintf("Could not access workspace: %v", err))
+		return nil
 	}
 	
-	formatter := output.NewFormatter(config.Cfg.OutputFormat, false)
-	return formatter.Print(workspace)
+	fmt.Printf("\nProjects in workspace: %d\n", len(projects))
+	for _, p := range projects {
+		fmt.Printf("  - %s (%s)\n", p.Name, p.Identifier)
+	}
+	
+	return nil
 }
 
 func runSwitch(cmd *cobra.Command, args []string) error {
-	client, err := api.NewClient()
-	if err != nil {
-		return err
-	}
-	
-	workspaces, err := client.ListWorkspaces()
-	if err != nil {
-		return err
-	}
-	
 	var slug string
 	if len(args) > 0 {
 		slug = args[0]
 	} else {
-		// Interactive selection
-		var options []string
-		for _, ws := range workspaces {
-			options = append(options, fmt.Sprintf("%s (%s)", ws.Name, ws.Slug))
+		// Interactive prompt
+		prompt := &survey.Input{
+			Message: "Enter workspace slug:",
+			Help:    "This is the unique identifier for your workspace (found in the URL)",
 		}
-		
-		var selected string
-		prompt := &survey.Select{
-			Message: "Select workspace:",
-			Options: options,
-		}
-		if err := survey.AskOne(prompt, &selected); err != nil {
+		if err := survey.AskOne(prompt, &slug); err != nil {
 			return err
-		}
-		
-		// Extract slug from selection
-		for _, ws := range workspaces {
-			if fmt.Sprintf("%s (%s)", ws.Name, ws.Slug) == selected {
-				slug = ws.Slug
-				break
-			}
 		}
 	}
 	
@@ -159,12 +142,25 @@ func runSwitch(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("workspace slug is required")
 	}
 	
-	// Verify workspace exists
-	_, err = client.GetWorkspace(slug)
+	// Verify the workspace by trying to list projects
+	client, err := api.NewClient()
 	if err != nil {
-		return fmt.Errorf("workspace not found: %s", slug)
+		return err
 	}
 	
+	// Temporarily set the workspace to test it
+	oldWorkspace := config.Cfg.DefaultWorkspace
+	config.Cfg.DefaultWorkspace = slug
+	client.Workspace = slug
+	
+	_, err = client.ListProjects()
+	if err != nil {
+		// Restore old workspace
+		config.Cfg.DefaultWorkspace = oldWorkspace
+		return fmt.Errorf("could not access workspace '%s': %w", slug, err)
+	}
+	
+	// Save the new workspace
 	config.Cfg.DefaultWorkspace = slug
 	if err := config.SaveConfig(); err != nil {
 		return err

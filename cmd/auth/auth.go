@@ -181,8 +181,15 @@ func runWhoami(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	
-	// TODO: Add GetMe endpoint to API
-	output.Info("User information endpoint to be implemented")
+	// Get user info from the API
+	user, err := client.GetUserInfo()
+	if err != nil {
+		return fmt.Errorf("failed to get user info: %w", err)
+	}
+	
+	fmt.Printf("User: %s %s\n", user.FirstName, user.LastName)
+	fmt.Printf("Email: %s\n", user.Email)
+	fmt.Printf("Display Name: %s\n", user.DisplayName)
 	fmt.Printf("Workspace: %s\n", client.Workspace)
 	
 	return nil

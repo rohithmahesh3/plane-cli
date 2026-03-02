@@ -120,19 +120,23 @@ func (c *Client) DeleteIssue(projectID, issueID string) error {
 	return c.Delete(path)
 }
 
+// SearchIssues searches for issues across the workspace
+// Endpoint: GET /api/v1/workspaces/{workspace_slug}/issues/search/
+// Returns: {"issues": [...]}
 func (c *Client) SearchIssues(query string) ([]plane.Issue, error) {
-	path := fmt.Sprintf("/workspaces/%s/search/issues/", c.Workspace)
+	path := fmt.Sprintf("/workspaces/%s/issues/search/", c.Workspace)
 	
 	params := url.Values{}
 	params.Set("search", query)
 	
+	// The search endpoint returns a different structure
 	var response struct {
-		Results []plane.Issue `json:"results"`
+		Issues []plane.Issue `json:"issues"`
 	}
 	
 	if err := c.Get(path, params, &response); err != nil {
 		return nil, err
 	}
 	
-	return response.Results, nil
+	return response.Issues, nil
 }
