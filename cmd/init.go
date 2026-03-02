@@ -71,10 +71,12 @@ func runInit(cmd *cobra.Command, args []string) error {
 	if _, err := os.Stat(settingsPath); err == nil {
 		if !initUpgrade {
 			var overwrite bool
-			survey.AskOne(&survey.Confirm{
+			if err := survey.AskOne(&survey.Confirm{
 				Message: ".plane/settings.yaml already exists. Overwrite?",
 				Default: false,
-			}, &overwrite)
+			}, &overwrite); err != nil {
+				return err
+			}
 			if !overwrite {
 				output.Info("Cancelled. Use --upgrade to update existing settings")
 				return nil
@@ -130,10 +132,12 @@ func runInit(cmd *cobra.Command, args []string) error {
 	fmt.Println()
 
 	var confirm bool
-	survey.AskOne(&survey.Confirm{
+	if err := survey.AskOne(&survey.Confirm{
 		Message: "Create .plane/settings.yaml?",
 		Default: true,
-	}, &confirm)
+	}, &confirm); err != nil {
+		return err
+	}
 
 	if !confirm {
 		output.Info("Cancelled")
@@ -163,10 +167,12 @@ func getWorkspaceSlug() (string, error) {
 
 	if config.Cfg.DefaultWorkspace != "" {
 		var useExisting bool
-		survey.AskOne(&survey.Confirm{
+		if err := survey.AskOne(&survey.Confirm{
 			Message: fmt.Sprintf("Use workspace '%s' from global config?", config.Cfg.DefaultWorkspace),
 			Default: true,
-		}, &useExisting)
+		}, &useExisting); err != nil {
+			return "", err
+		}
 		if useExisting {
 			return config.Cfg.DefaultWorkspace, nil
 		}
@@ -209,11 +215,10 @@ func selectOrCreateProject(client *api.Client, projects []plane.Project) (string
 		displays[i] = opt.display
 	}
 
-	err := survey.AskOne(&survey.Select{
+	if err := survey.AskOne(&survey.Select{
 		Message: "Select a project:",
 		Options: displays,
-	}, &selectedIdx)
-	if err != nil {
+	}, &selectedIdx); err != nil {
 		return "", err
 	}
 
@@ -338,7 +343,9 @@ func createSettingsFile(workspace, projectID, settingsPath string) error {
 	if err := encoder.Encode(&settings); err != nil {
 		return fmt.Errorf("failed to marshal settings: %w", err)
 	}
-	encoder.Close()
+	if err := encoder.Close(); err != nil {
+		return fmt.Errorf("failed to close encoder: %w", err)
+	}
 
 	header := "# Plane CLI project settings\n# This file overrides global config for this directory\n\n"
 	fullContent := header + buf.String()
@@ -369,10 +376,12 @@ func handleGitignore() error {
 	}
 
 	var addToGitignore bool
-	survey.AskOne(&survey.Confirm{
+	if err := survey.AskOne(&survey.Confirm{
 		Message: "Add .plane/ to .gitignore?",
 		Default: true,
-	}, &addToGitignore)
+	}, &addToGitignore); err != nil {
+		return err
+	}
 
 	if !addToGitignore {
 		return nil
