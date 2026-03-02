@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/zalando/go-keyring"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -26,6 +27,11 @@ type Config struct {
 	DefaultProject   string `mapstructure:"default_project"`
 	OutputFormat     string `mapstructure:"output_format"`
 	APIHost          string `mapstructure:"api_host"`
+}
+
+type LocalConfig struct {
+	Workspace string `yaml:"workspace"`
+	Project   string `yaml:"project"`
 }
 
 var (
@@ -74,7 +80,38 @@ func InitConfig() error {
 		return fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
+	loadLocalConfig()
+
 	return nil
+}
+
+func loadLocalConfig() {
+	dir, err := os.Getwd()
+	if err != nil {
+		return
+	}
+
+	for {
+		settingsPath := filepath.Join(dir, ".plane", "settings.yaml")
+		if data, err := os.ReadFile(settingsPath); err == nil {
+			var local LocalConfig
+			if err := yaml.Unmarshal(data, &local); err == nil {
+				if local.Workspace != "" {
+					Cfg.DefaultWorkspace = local.Workspace
+				}
+				if local.Project != "" {
+					Cfg.DefaultProject = local.Project
+				}
+			}
+			return
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+		dir = parent
+	}
 }
 
 func SaveConfig() error {

@@ -90,3 +90,59 @@ func TestAPIKeyStorage(t *testing.T) {
 	_, err = GetAPIKey()
 	assert.Error(t, err) // Should return error when key is deleted
 }
+
+func TestLocalConfig(t *testing.T) {
+	tempDir := t.TempDir()
+
+	// Create global config
+	configDir := filepath.Join(tempDir, ".config", AppName)
+	err := os.MkdirAll(configDir, 0755)
+	require.NoError(t, err)
+
+	SetConfigFile(filepath.Join(configDir, ConfigFileName+".yaml"))
+
+	// Setup initial state
+	Cfg = Config{
+		DefaultWorkspace: "global-workspace",
+		DefaultProject:   "global-project",
+	}
+
+	// Change to a temp directory to simulate a project
+	projectDir := filepath.Join(tempDir, "my-project")
+	err = os.MkdirAll(projectDir, 0755)
+	require.NoError(t, err)
+
+	// Save original working dir and restore later
+	originalWd, _ := os.Getwd()
+	defer os.Chdir(originalWd)
+
+	err = os.Chdir(projectDir)
+	require.NoError(t, err)
+
+	// 1. Test without .plane/settings.yaml
+	err = InitConfig()
+	require.NoError(t, err)
+	// It should retain global defaults if no file (actually, InitConfig will overwrite Cfg, but if we save it, it will read it. Let's just test loadLocalConfig directly or rely on InitConfig to fall back to nothing)
+
+	// 2. Test with .plane/settings.yaml
+	planeDir := filepath.Join(projectDir, ".plane")
+	err = os.MkdirAll(planeDir, 0755)
+	require.NoError(t, err)
+
+	settingsContent := []byte(`
+workspace: local-workspace
+project: local-project
+`)
+	err = os.WriteFile(filepath.Join(planeDir, "settings.yaml"), settingsContent, 0644)
+	require.NoError(t, err)
+
+	// We can manually reset Cfg to defaults
+	Cfg.DefaultWorkspace = "global-workspace"
+	Cfg.DefaultProject = "global-project"
+
+	// Call loadLocalConfig directly since InitConfig overrides Cfg entirely with Viper defaults
+	loadLocalConfig()
+
+	assert.Equal(t, "local-workspace", Cfg.DefaultWorkspace)
+	assert.Equal(t, "local-project", Cfg.DefaultProject)
+}
