@@ -305,3 +305,37 @@ type UpdateIntakeIssueRequest struct {
 	Status      int    `json:"status,omitempty"`
 	SnoozedTill string `json:"snoozed_till,omitempty"`
 }
+
+type Activity struct {
+	ID            string    `json:"id"`
+	Verb          string    `json:"verb"`
+	Field         string    `json:"field,omitempty"`
+	OldValue      string    `json:"old_value,omitempty"`
+	NewValue      string    `json:"new_value,omitempty"`
+	Comment       string    `json:"comment,omitempty"`
+	Attachments   []string  `json:"attachments,omitempty"`
+	OldIdentifier string    `json:"old_identifier,omitempty"`
+	NewIdentifier string    `json:"new_identifier,omitempty"`
+	Epoch         float64   `json:"epoch,omitempty"`
+	Project       string    `json:"project,omitempty"`
+	Workspace     string    `json:"workspace,omitempty"`
+	Issue         string    `json:"issue,omitempty"`
+	IssueComment  string    `json:"issue_comment,omitempty"`
+	Actor         string    `json:"actor,omitempty"`
+	CreatedAt     time.Time `json:"created_at,omitempty"`
+	UpdatedAt     time.Time `json:"updated_at,omitempty"`
+}
+
+type UpdateAttachmentRequest struct {
+	Attributes       AttachmentAttributes   `json:"attributes,omitempty"`
+	Asset            string                 `json:"asset,omitempty"`
+	EntityType       string                 `json:"entity_type,omitempty"`
+	EntityIdentifier string                 `json:"entity_identifier,omitempty"`
+	IsDeleted        bool                   `json:"is_deleted,omitempty"`
+	IsArchived       bool                   `json:"is_archived,omitempty"`
+	ExternalID       string                 `json:"external_id,omitempty"`
+	ExternalSource   string                 `json:"external_source,omitempty"`
+	Size             int64                  `json:"size,omitempty"`
+	IsUploaded       bool                   `json:"is_uploaded,omitempty"`
+	StorageMetadata  map[string]interface{} `json:"storage_metadata,omitempty"`
+}

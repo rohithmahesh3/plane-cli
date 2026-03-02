@@ -149,6 +149,18 @@ func (c *Client) DeleteAttachment(projectID, issueID, attachmentID string) error
 	return c.Delete(path)
 }
 
+// UpdateAttachment updates an existing attachment
+func (c *Client) UpdateAttachment(projectID, issueID, attachmentID string, req plane.UpdateAttachmentRequest) (*plane.Attachment, error) {
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/attachments/%s/", c.Workspace, projectID, issueID, attachmentID)
+
+	var attachment plane.Attachment
+	if err := c.Patch(path, req, &attachment); err != nil {
+		return nil, err
+	}
+
+	return &attachment, nil
+}
+
 // Helper function to unmarshal response
 func (c *Client) unmarshalResponse(body io.Reader, v interface{}) error {
 	data, err := io.ReadAll(body)
