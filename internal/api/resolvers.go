@@ -17,8 +17,8 @@ var (
 	statesMu     sync.RWMutex
 )
 
-// ResolveAssignees converts usernames to user UUIDs
-// Accepts formats: @username, username, or UUID
+// ResolveAssignees converts display names/emails to user UUIDs
+// Accepts formats: @display_name, display_name, email, or UUID
 func (c *Client) ResolveAssignees(projectID string, assignees []string) ([]string, error) {
 	if len(assignees) == 0 {
 		return nil, nil
@@ -40,7 +40,7 @@ func (c *Client) ResolveAssignees(projectID string, assignees []string) ([]strin
 
 		found := false
 		for _, m := range members {
-			if m.Username == username || m.DisplayName == username || m.Email == username {
+			if m.DisplayName == username || m.Email == username || m.ID == username {
 				resolved = append(resolved, m.ID)
 				found = true
 				break

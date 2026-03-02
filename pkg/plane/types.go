@@ -86,13 +86,13 @@ type UpdateStateRequest struct {
 
 type User struct {
 	ID          string `json:"id"`
-	Username    string `json:"username"`
 	Email       string `json:"email,omitempty"`
 	Avatar      string `json:"avatar,omitempty"`
 	AvatarURL   string `json:"avatar_url,omitempty"`
 	FirstName   string `json:"first_name,omitempty"`
 	LastName    string `json:"last_name,omitempty"`
 	DisplayName string `json:"display_name,omitempty"`
+	Role        int    `json:"role,omitempty"`
 }
 
 type Label struct {

@@ -55,13 +55,13 @@ func (fs *FlexibleState) MarshalJSON() ([]byte, error) {
 // FlexibleUser can unmarshal from either a string (UUID) or an object
 type FlexibleUser struct {
 	ID          string
-	Username    string
 	Email       string
 	DisplayName string
 	FirstName   string
 	LastName    string
 	Avatar      string
 	AvatarURL   string
+	Role        int
 	IsUUID      bool
 }
 
@@ -78,13 +78,15 @@ func (fu *FlexibleUser) UnmarshalJSON(data []byte) error {
 		return nil
 	case map[string]interface{}:
 		fu.ID = getString(v, "id")
-		fu.Username = getString(v, "username")
 		fu.Email = getString(v, "email")
 		fu.DisplayName = getString(v, "display_name")
 		fu.FirstName = getString(v, "first_name")
 		fu.LastName = getString(v, "last_name")
 		fu.Avatar = getString(v, "avatar")
 		fu.AvatarURL = getString(v, "avatar_url")
+		if role, ok := v["role"].(float64); ok {
+			fu.Role = int(role)
+		}
 		fu.IsUUID = false
 		return nil
 	default:
@@ -98,27 +100,26 @@ func (fu *FlexibleUser) MarshalJSON() ([]byte, error) {
 	}
 	return json.Marshal(map[string]interface{}{
 		"id":           fu.ID,
-		"username":     fu.Username,
 		"email":        fu.Email,
 		"display_name": fu.DisplayName,
 		"first_name":   fu.FirstName,
 		"last_name":    fu.LastName,
 		"avatar":       fu.Avatar,
 		"avatar_url":   fu.AvatarURL,
+		"role":         fu.Role,
 	})
 }
 
-// ToUser converts FlexibleUser to User
 func (fu *FlexibleUser) ToUser() User {
 	return User{
 		ID:          fu.ID,
-		Username:    fu.Username,
 		Email:       fu.Email,
 		DisplayName: fu.DisplayName,
 		FirstName:   fu.FirstName,
 		LastName:    fu.LastName,
 		Avatar:      fu.Avatar,
 		AvatarURL:   fu.AvatarURL,
+		Role:        fu.Role,
 	}
 }
 

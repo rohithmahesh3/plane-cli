@@ -178,8 +178,8 @@ func runList(cmd *cobra.Command, args []string) error {
 			u := issue.Assignees[0]
 			if u.DisplayName != "" {
 				assignee = "@" + u.DisplayName
-			} else if u.Username != "" {
-				assignee = "@" + u.Username
+			} else if u.Email != "" {
+				assignee = u.Email
 			}
 		}
 
