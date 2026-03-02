@@ -37,6 +37,7 @@ type IssueType struct {
 	LogoProps      map[string]interface{} `json:"logo_props,omitempty"`
 	Level          int                    `json:"level"`
 	IsActive       bool                   `json:"is_active"`
+	IsEpic         bool                   `json:"is_epic"`
 	IsDefault      bool                   `json:"is_default"`
 	DeletedAt      *time.Time             `json:"deleted_at,omitempty"`
 	Workspace      string                 `json:"workspace"`
@@ -56,6 +57,8 @@ type CreateIssueTypeRequest struct {
 	LogoProps   map[string]interface{} `json:"logo_props,omitempty"`
 	Level       int                    `json:"level,omitempty"`
 	IsActive    bool                   `json:"is_active,omitempty"`
+	IsEpic      bool                   `json:"is_epic,omitempty"`
+	IsDefault   bool                   `json:"is_default,omitempty"`
 }
 
 // UpdateIssueTypeRequest represents a request to update an issue type
@@ -64,14 +67,19 @@ type UpdateIssueTypeRequest struct {
 	Description string                 `json:"description,omitempty"`
 	LogoProps   map[string]interface{} `json:"logo_props,omitempty"`
 	IsActive    bool                   `json:"is_active,omitempty"`
+	IsEpic      bool                   `json:"is_epic,omitempty"`
+	IsDefault   bool                   `json:"is_default,omitempty"`
 }
 
 // Comment represents a comment on an issue
 type Comment struct {
 	ID              string    `json:"id"`
 	CommentHTML     string    `json:"comment_html"`
+	CommentJSON     string    `json:"comment_json,omitempty"`
 	CommentStripped string    `json:"comment_stripped,omitempty"`
 	Access          string    `json:"access,omitempty"`
+	ExternalID      string    `json:"external_id,omitempty"`
+	ExternalSource  string    `json:"external_source,omitempty"`
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
 	CreatedBy       string    `json:"created_by"`
@@ -84,12 +92,18 @@ type Comment struct {
 
 // CreateCommentRequest represents a request to create a comment
 type CreateCommentRequest struct {
-	CommentHTML string `json:"comment_html"`
-	Access      string `json:"access,omitempty"`
+	CommentHTML    string `json:"comment_html"`
+	CommentJSON    string `json:"comment_json,omitempty"`
+	Access         string `json:"access,omitempty"`
+	ExternalID     string `json:"external_id,omitempty"`
+	ExternalSource string `json:"external_source,omitempty"`
 }
 
 // UpdateCommentRequest represents a request to update a comment
 type UpdateCommentRequest struct {
-	CommentHTML string `json:"comment_html,omitempty"`
-	Access      string `json:"access,omitempty"`
+	CommentHTML    string `json:"comment_html,omitempty"`
+	CommentJSON    string `json:"comment_json,omitempty"`
+	Access         string `json:"access,omitempty"`
+	ExternalID     string `json:"external_id,omitempty"`
+	ExternalSource string `json:"external_source,omitempty"`
 }

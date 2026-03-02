@@ -48,7 +48,20 @@ func (c *Client) ResolveAssignees(projectID string, assignees []string) ([]strin
 		}
 
 		if !found {
-			return nil, fmt.Errorf("assignee '%s' not found in workspace members", username)
+			suggestions := suggestWorkspaceMembers(members, username, 5)
+
+			var message strings.Builder
+			_, _ = fmt.Fprintf(&message, "assignee '%s' not found in workspace members", username)
+			if len(suggestions) > 0 {
+				message.WriteString(".\nClosest matches:")
+				for _, suggestion := range suggestions {
+					message.WriteString("\n  - ")
+					message.WriteString(FormatWorkspaceMemberSuggestion(suggestion))
+				}
+			}
+			_, _ = fmt.Fprintf(&message, "\nRun: plane workspace members --search %s", username)
+
+			return nil, fmt.Errorf("%s", message.String())
 		}
 	}
 

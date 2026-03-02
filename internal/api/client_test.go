@@ -170,21 +170,6 @@ func TestClient_Do(t *testing.T) {
 	}
 }
 
-func TestClient_ListWorkspaces(t *testing.T) {
-	// Since ListWorkspaces now returns an error (API doesn't support it),
-	// we just verify that it returns the expected error
-	client := &Client{
-		HTTPClient: &http.Client{Timeout: DefaultTimeout},
-		BaseURL:    "https://api.plane.so",
-		APIKey:     "test-api-key",
-	}
-
-	workspaces, err := client.ListWorkspaces()
-	require.Error(t, err)
-	assert.Nil(t, workspaces)
-	assert.Contains(t, err.Error(), "workspace listing is not available")
-}
-
 func TestClient_ListProjects(t *testing.T) {
 	mockProjects := []plane.Project{
 		{
@@ -238,9 +223,10 @@ func TestClient_ListIssues(t *testing.T) {
 		// Check query params
 		query := r.URL.Query()
 		assert.Equal(t, "backlog", query.Get("state"))
-		assert.Equal(t, "high", query.Get("priority"))
 		assert.Equal(t, "25", query.Get("limit"))
-		assert.Equal(t, "25", query.Get("per_page"))
+		assert.Equal(t, "", query.Get("per_page"))
+		assert.Equal(t, "", query.Get("priority"))
+		assert.Equal(t, "", query.Get("cursor"))
 
 		response := Response{
 			Results: mustMarshal(t, mockIssues),
@@ -264,9 +250,8 @@ func TestClient_ListIssues(t *testing.T) {
 	}
 
 	opts := IssueListOptions{
-		State:    "backlog",
-		Priority: "high",
-		PerPage:  25,
+		State: "backlog",
+		Limit: 25,
 	}
 
 	issues, pagination, err := client.ListIssues("proj-1", opts)

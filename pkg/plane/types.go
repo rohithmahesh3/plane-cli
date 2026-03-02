@@ -13,14 +13,21 @@ type Workspace struct {
 }
 
 type Project struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Identifier  string    `json:"identifier"`
-	Description string    `json:"description,omitempty"`
-	CoverImage  string    `json:"cover_image,omitempty"`
-	IconProp    IconProp  `json:"icon_prop,omitempty"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID                    string      `json:"id"`
+	Name                  string      `json:"name"`
+	Identifier            string      `json:"identifier"`
+	Description           string      `json:"description,omitempty"`
+	CoverImage            string      `json:"cover_image,omitempty"`
+	IconProp              IconProp    `json:"icon_prop,omitempty"`
+	ModuleView            bool        `json:"module_view,omitempty"`
+	CycleView             bool        `json:"cycle_view,omitempty"`
+	PageView              bool        `json:"page_view,omitempty"`
+	IntakeView            bool        `json:"intake_view,omitempty"`
+	IsTimeTrackingEnabled bool        `json:"is_time_tracking_enabled,omitempty"`
+	IsIssueTypeEnabled    bool        `json:"is_issue_type_enabled,omitempty"`
+	Estimate              interface{} `json:"estimate,omitempty"`
+	CreatedAt             time.Time   `json:"created_at"`
+	UpdatedAt             time.Time   `json:"updated_at"`
 }
 
 type IconProp struct {
@@ -130,6 +137,7 @@ type Cycle struct {
 	EndDate     string    `json:"end_date,omitempty"`
 	Status      string    `json:"status,omitempty"`
 	OwnedBy     string    `json:"owned_by,omitempty"`
+	Timezone    string    `json:"timezone,omitempty"`
 	SortOrder   float64   `json:"sort_order,omitempty"`
 	CreatedAt   time.Time `json:"created_at,omitempty"`
 	UpdatedAt   time.Time `json:"updated_at,omitempty"`
@@ -137,39 +145,67 @@ type Cycle struct {
 }
 
 type CreateCycleRequest struct {
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-	StartDate   string `json:"start_date,omitempty"`
-	EndDate     string `json:"end_date,omitempty"`
+	Name           string `json:"name"`
+	Description    string `json:"description,omitempty"`
+	StartDate      string `json:"start_date,omitempty"`
+	EndDate        string `json:"end_date,omitempty"`
+	OwnedBy        string `json:"owned_by,omitempty"`
+	ExternalSource string `json:"external_source,omitempty"`
+	ExternalID     string `json:"external_id,omitempty"`
+	Timezone       string `json:"timezone,omitempty"`
+	ProjectID      string `json:"project_id,omitempty"`
 }
 
 type UpdateCycleRequest struct {
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	StartDate   string `json:"start_date,omitempty"`
-	EndDate     string `json:"end_date,omitempty"`
+	Name           string `json:"name,omitempty"`
+	Description    string `json:"description,omitempty"`
+	StartDate      string `json:"start_date,omitempty"`
+	EndDate        string `json:"end_date,omitempty"`
+	OwnedBy        string `json:"owned_by,omitempty"`
+	ExternalSource string `json:"external_source,omitempty"`
+	ExternalID     string `json:"external_id,omitempty"`
+	Timezone       string `json:"timezone,omitempty"`
+	ProjectID      string `json:"project_id,omitempty"`
 }
 
 type Module struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description,omitempty"`
-	Status      string    `json:"status,omitempty"`
-	CreatedAt   time.Time `json:"created_at,omitempty"`
-	UpdatedAt   time.Time `json:"updated_at,omitempty"`
-	ArchivedAt  string    `json:"archived_at,omitempty"`
+	ID              string    `json:"id"`
+	Name            string    `json:"name"`
+	Description     string    `json:"description,omitempty"`
+	DescriptionHTML string    `json:"description_html,omitempty"`
+	DescriptionText string    `json:"description_text,omitempty"`
+	StartDate       string    `json:"start_date,omitempty"`
+	TargetDate      string    `json:"target_date,omitempty"`
+	Status          string    `json:"status,omitempty"`
+	Lead            string    `json:"lead,omitempty"`
+	Members         []string  `json:"members,omitempty"`
+	CreatedAt       time.Time `json:"created_at,omitempty"`
+	UpdatedAt       time.Time `json:"updated_at,omitempty"`
+	ArchivedAt      string    `json:"archived_at,omitempty"`
 }
 
 type CreateModuleRequest struct {
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-	Status      string `json:"status,omitempty"`
+	Name           string   `json:"name"`
+	Description    string   `json:"description,omitempty"`
+	StartDate      string   `json:"start_date,omitempty"`
+	TargetDate     string   `json:"target_date,omitempty"`
+	Status         string   `json:"status,omitempty"`
+	Lead           string   `json:"lead,omitempty"`
+	Members        []string `json:"members,omitempty"`
+	ExternalSource string   `json:"external_source,omitempty"`
+	ExternalID     string   `json:"external_id,omitempty"`
 }
 
 type UpdateModuleRequest struct {
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	Status      string `json:"status,omitempty"`
+	Name           string   `json:"name,omitempty"`
+	Description    string   `json:"description,omitempty"`
+	StartDate      string   `json:"start_date,omitempty"`
+	TargetDate     string   `json:"target_date,omitempty"`
+	Status         string   `json:"status,omitempty"`
+	Lead           string   `json:"lead,omitempty"`
+	Members        []string `json:"members,omitempty"`
+	ExternalSource string   `json:"external_source,omitempty"`
+	ExternalID     string   `json:"external_id,omitempty"`
 }
 
 type CreateIssueRequest struct {
@@ -352,11 +388,6 @@ type CreateIntakeIssueRequest struct {
 		Name     string `json:"name"`
 		Priority string `json:"priority,omitempty"`
 	} `json:"issue"`
-}
-
-type UpdateIntakeIssueRequest struct {
-	Status      int    `json:"status,omitempty"`
-	SnoozedTill string `json:"snoozed_till,omitempty"`
 }
 
 type Activity struct {

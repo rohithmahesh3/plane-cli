@@ -9,27 +9,32 @@ import (
 // ListModules retrieves all modules for a project
 func (c *Client) ListModules(projectID string, archived bool) ([]plane.Module, error) {
 	path := fmt.Sprintf("/workspaces/%s/projects/%s/modules/", c.Workspace, projectID)
-
 	var response struct {
 		Results []plane.Module `json:"results"`
 	}
 
-	if err := c.Get(path, nil, &response); err != nil {
-		return nil, err
-	}
-
-	// Filter archived modules if needed
 	if !archived {
-		var activeModules []plane.Module
-		for _, module := range response.Results {
-			if module.ArchivedAt == "" {
-				activeModules = append(activeModules, module)
-			}
+		if err := c.Get(path, nil, &response); err != nil {
+			return nil, err
 		}
-		return activeModules, nil
+		return response.Results, nil
 	}
 
-	return response.Results, nil
+	paths := []string{
+		fmt.Sprintf("/workspaces/%s/projects/%s/modules/archived/", c.Workspace, projectID),
+		fmt.Sprintf("/workspaces/%s/projects/%s/archived-modules/", c.Workspace, projectID),
+	}
+
+	var lastErr error
+	for _, candidate := range paths {
+		if err := c.Get(candidate, nil, &response); err == nil {
+			return response.Results, nil
+		} else {
+			lastErr = err
+		}
+	}
+
+	return nil, lastErr
 }
 
 // GetModule retrieves a specific module by ID
@@ -77,12 +82,6 @@ func (c *Client) DeleteModule(projectID, moduleID string) error {
 // ArchiveModule archives a module
 func (c *Client) ArchiveModule(projectID, moduleID string) error {
 	path := fmt.Sprintf("/workspaces/%s/projects/%s/modules/%s/archive/", c.Workspace, projectID, moduleID)
-	return c.Post(path, nil, nil)
-}
-
-// UnarchiveModule unarchives a module
-func (c *Client) UnarchiveModule(projectID, moduleID string) error {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/modules/%s/unarchive/", c.Workspace, projectID, moduleID)
 	return c.Post(path, nil, nil)
 }
 

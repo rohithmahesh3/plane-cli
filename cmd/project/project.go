@@ -12,10 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	allFlag bool
-)
-
 var ProjectCmd = &cobra.Command{
 	Use:     "project",
 	Aliases: []string{"proj"},
@@ -69,7 +65,6 @@ func init() {
 	ProjectCmd.AddCommand(deleteCmd)
 	ProjectCmd.AddCommand(membersCmd)
 
-	listCmd.Flags().BoolVarP(&allFlag, "all", "a", false, "List all accessible projects")
 }
 
 func runList(cmd *cobra.Command, args []string) error {

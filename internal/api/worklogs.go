@@ -63,14 +63,19 @@ func (c *Client) DeleteWorklog(projectID, issueID, worklogID string) error {
 	return c.Delete(path)
 }
 
-// GetTotalWorklogTime retrieves total time logged for an issue
+// GetTotalWorklogTime sums a work item's worklogs.
+// The current public Plane API exposes project-level total-worklogs, not a
+// per-work-item total endpoint, so this is derived from the item worklogs list.
 func (c *Client) GetTotalWorklogTime(projectID, issueID string) (int, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/worklogs/total/", c.Workspace, projectID, issueID)
-
-	var total plane.WorklogTotal
-	if err := c.Get(path, nil, &total); err != nil {
+	worklogs, err := c.ListWorklogs(projectID, issueID)
+	if err != nil {
 		return 0, err
 	}
 
-	return total.TotalTime, nil
+	total := 0
+	for _, worklog := range worklogs {
+		total += worklog.Duration
+	}
+
+	return total, nil
 }

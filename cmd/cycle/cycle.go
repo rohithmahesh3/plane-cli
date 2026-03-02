@@ -78,14 +78,6 @@ var archiveCmd = &cobra.Command{
 	RunE:  runArchive,
 }
 
-var unarchiveCmd = &cobra.Command{
-	Use:   "unarchive <id>",
-	Short: "Unarchive a cycle",
-	Long:  `Restore an archived cycle to active status.`,
-	Args:  cobra.ExactArgs(1),
-	RunE:  runUnarchive,
-}
-
 var issuesCmd = &cobra.Command{
 	Use:     "issues <id>",
 	Aliases: []string{"work-items"},
@@ -118,7 +110,6 @@ func init() {
 	CycleCmd.AddCommand(editCmd)
 	CycleCmd.AddCommand(deleteCmd)
 	CycleCmd.AddCommand(archiveCmd)
-	CycleCmd.AddCommand(unarchiveCmd)
 	CycleCmd.AddCommand(issuesCmd)
 	CycleCmd.AddCommand(addIssuesCmd)
 	CycleCmd.AddCommand(removeIssueCmd)
@@ -408,27 +399,6 @@ func runArchive(cmd *cobra.Command, args []string) error {
 	}
 
 	output.Success(fmt.Sprintf("Archived cycle %s", cycleID))
-	return nil
-}
-
-func runUnarchive(cmd *cobra.Command, args []string) error {
-	projectID := config.Cfg.DefaultProject
-	if projectID == "" {
-		return fmt.Errorf("no project specified")
-	}
-
-	cycleID := args[0]
-
-	client, err := api.NewClient()
-	if err != nil {
-		return err
-	}
-
-	if err := client.UnarchiveCycle(projectID, cycleID); err != nil {
-		return err
-	}
-
-	output.Success(fmt.Sprintf("Unarchived cycle %s", cycleID))
 	return nil
 }
 

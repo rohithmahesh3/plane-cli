@@ -10,6 +10,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	memberSearch string
+	memberExact  bool
+	memberLimit  int
+)
+
 var WorkspaceCmd = &cobra.Command{
 	Use:     "workspace",
 	Aliases: []string{"ws"},
@@ -51,6 +57,10 @@ var membersCmd = &cobra.Command{
 }
 
 func init() {
+	membersCmd.Flags().StringVar(&memberSearch, "search", "", "Filter members by display name, email, full name, or ID")
+	membersCmd.Flags().BoolVar(&memberExact, "exact", false, "Require exact matches for --search")
+	membersCmd.Flags().IntVar(&memberLimit, "limit", 0, "Maximum number of members to show (0 = no limit)")
+
 	WorkspaceCmd.AddCommand(infoCmd)
 	WorkspaceCmd.AddCommand(switchCmd)
 	WorkspaceCmd.AddCommand(membersCmd)
@@ -150,6 +160,13 @@ func runMembers(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	limit := memberLimit
+	if memberSearch != "" && !cmd.Flags().Changed("limit") {
+		limit = 20
+	}
+
+	members = api.FilterWorkspaceMembers(members, memberSearch, memberExact, limit)
+
 	if len(members) == 0 {
 		output.Info("No members found")
 		return nil
@@ -159,8 +176,10 @@ func runMembers(cmd *cobra.Command, args []string) error {
 
 	type memberOutput struct {
 		ID          string `table:"ID" json:"id"`
-		DisplayName string `table:"NAME" json:"display_name"`
+		DisplayName string `table:"DISPLAY_NAME" json:"display_name"`
 		Email       string `table:"EMAIL" json:"email"`
+		FirstName   string `table:"FIRST_NAME" json:"first_name"`
+		LastName    string `table:"LAST_NAME" json:"last_name"`
 		Role        int    `table:"ROLE" json:"role"`
 	}
 
@@ -170,7 +189,9 @@ func runMembers(cmd *cobra.Command, args []string) error {
 			ID:          m.ID,
 			DisplayName: m.DisplayName,
 			Email:       m.Email,
-			Role:        0, // Role not provided in current User struct
+			FirstName:   m.FirstName,
+			LastName:    m.LastName,
+			Role:        m.Role,
 		})
 	}
 

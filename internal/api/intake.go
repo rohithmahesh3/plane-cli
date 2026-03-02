@@ -45,18 +45,6 @@ func (c *Client) CreateIntakeIssue(projectID string, req plane.CreateIntakeIssue
 	return &intake, nil
 }
 
-// UpdateIntakeIssue updates an existing intake issue
-func (c *Client) UpdateIntakeIssue(projectID, intakeID string, req plane.UpdateIntakeIssueRequest) (*plane.IntakeIssue, error) {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/intake-issues/%s/", c.Workspace, projectID, intakeID)
-
-	var intake plane.IntakeIssue
-	if err := c.Patch(path, req, &intake); err != nil {
-		return nil, err
-	}
-
-	return &intake, nil
-}
-
 // DeleteIntakeIssue removes an intake issue
 func (c *Client) DeleteIntakeIssue(projectID, intakeID string) error {
 	path := fmt.Sprintf("/workspaces/%s/projects/%s/intake-issues/%s/", c.Workspace, projectID, intakeID)

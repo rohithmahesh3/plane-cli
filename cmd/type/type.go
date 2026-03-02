@@ -64,6 +64,14 @@ func runTypeList(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	project, err := client.GetProject(projectID)
+	if err != nil {
+		return err
+	}
+	if !project.IsIssueTypeEnabled {
+		return fmt.Errorf("issue types are disabled for project %s", projectID)
+	}
+
 	types, err := client.ListIssueTypes(projectID)
 	if err != nil {
 		return err
@@ -133,6 +141,14 @@ func runTypeCreate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	project, err := client.GetProject(projectID)
+	if err != nil {
+		return err
+	}
+	if !project.IsIssueTypeEnabled {
+		return fmt.Errorf("issue types are disabled for project %s", projectID)
+	}
+
 	req := plane.CreateIssueTypeRequest{
 		Name:        typeName,
 		Description: typeDescription,
@@ -174,6 +190,14 @@ func runTypeDelete(cmd *cobra.Command, args []string) error {
 	client, err := api.NewClient()
 	if err != nil {
 		return err
+	}
+
+	project, err := client.GetProject(projectID)
+	if err != nil {
+		return err
+	}
+	if !project.IsIssueTypeEnabled {
+		return fmt.Errorf("issue types are disabled for project %s", projectID)
 	}
 
 	if err := client.DeleteIssueType(projectID, typeID); err != nil {

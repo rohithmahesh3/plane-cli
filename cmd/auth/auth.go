@@ -124,10 +124,15 @@ func runLogin(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create API client: %w", err)
 	}
 
-	workspaces, err := client.ListWorkspaces()
+	_, err = client.GetUserInfo()
 	if err != nil {
 		_ = config.DeleteAPIKey()
 		return fmt.Errorf("authentication failed: %w", err)
+	}
+
+	if _, err := client.ListProjects(); err != nil {
+		_ = config.DeleteAPIKey()
+		return fmt.Errorf("workspace validation failed: %w", err)
 	}
 
 	// Save config
@@ -136,7 +141,6 @@ func runLogin(cmd *cobra.Command, args []string) error {
 	}
 
 	output.Success(fmt.Sprintf("Successfully authenticated with workspace '%s'", workspace))
-	output.Info(fmt.Sprintf("Found %d workspace(s)", len(workspaces)))
 
 	return nil
 }

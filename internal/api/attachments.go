@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/rohithmahesh3/plane-cli/pkg/plane"
 )
@@ -27,14 +28,21 @@ func (c *Client) ListAttachments(projectID, issueID string) ([]plane.Attachment,
 
 // GetAttachment retrieves a specific attachment
 func (c *Client) GetAttachment(projectID, issueID, attachmentID string) (*plane.Attachment, error) {
+	path := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/attachments/%s/", c.Workspace, projectID, issueID, attachmentID)
+
+	var attachment plane.Attachment
+	if err := c.Get(path, nil, &attachment); err == nil {
+		return &attachment, nil
+	}
+
 	attachments, err := c.ListAttachments(projectID, issueID)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, attachment := range attachments {
-		if attachment.ID == attachmentID {
-			return &attachment, nil
+	for _, item := range attachments {
+		if item.ID == attachmentID {
+			return &item, nil
 		}
 	}
 
@@ -169,12 +177,17 @@ func (c *Client) UpdateAttachment(projectID, issueID, attachmentID string, req p
 func (c *Client) completeAttachmentUpload(projectID, issueID, attachmentID string) (plane.Attachment, error) {
 	attachmentPath := fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/attachments/%s/", c.Workspace, projectID, issueID, attachmentID)
 
-	// Prefer the documented completion route, then fall back to the deployed PATCH flow.
+	// Plane documents upload completion as a PATCH to the attachment resource.
 	attempts := []struct {
 		method string
 		path   string
 		body   interface{}
 	}{
+		{
+			method: http.MethodPatch,
+			path:   attachmentPath,
+			body:   map[string]bool{"is_uploaded": true},
+		},
 		{
 			method: http.MethodPost,
 			path:   attachmentPath + "complete-upload/",
@@ -184,11 +197,6 @@ func (c *Client) completeAttachmentUpload(projectID, issueID, attachmentID strin
 			method: http.MethodPost,
 			path:   fmt.Sprintf("/workspaces/%s/projects/%s/work-items/%s/attachments/complete-upload/", c.Workspace, projectID, issueID),
 			body:   map[string]string{"asset_id": attachmentID},
-		},
-		{
-			method: http.MethodPatch,
-			path:   attachmentPath,
-			body:   map[string]bool{"is_uploaded": true},
 		},
 	}
 
@@ -217,6 +225,14 @@ func (c *Client) completeAttachmentUpload(projectID, issueID, attachmentID strin
 			lastErr = err
 			continue
 		}
+	}
+
+	for i := 0; i < 5; i++ {
+		attachment, err := c.GetAttachment(projectID, issueID, attachmentID)
+		if err == nil && attachment.ID != "" {
+			return *attachment, nil
+		}
+		time.Sleep(1 * time.Second)
 	}
 
 	return plane.Attachment{}, lastErr

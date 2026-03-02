@@ -9,27 +9,32 @@ import (
 // ListCycles retrieves all cycles for a project
 func (c *Client) ListCycles(projectID string, archived bool) ([]plane.Cycle, error) {
 	path := fmt.Sprintf("/workspaces/%s/projects/%s/cycles/", c.Workspace, projectID)
-
 	var response struct {
 		Results []plane.Cycle `json:"results"`
 	}
 
-	if err := c.Get(path, nil, &response); err != nil {
-		return nil, err
-	}
-
-	// Filter archived cycles if needed
 	if !archived {
-		var activeCycles []plane.Cycle
-		for _, cycle := range response.Results {
-			if cycle.ArchivedAt == "" {
-				activeCycles = append(activeCycles, cycle)
-			}
+		if err := c.Get(path, nil, &response); err != nil {
+			return nil, err
 		}
-		return activeCycles, nil
+		return response.Results, nil
 	}
 
-	return response.Results, nil
+	paths := []string{
+		fmt.Sprintf("/workspaces/%s/projects/%s/cycles/archived/", c.Workspace, projectID),
+		fmt.Sprintf("/workspaces/%s/projects/%s/archived-cycles/", c.Workspace, projectID),
+	}
+
+	var lastErr error
+	for _, candidate := range paths {
+		if err := c.Get(candidate, nil, &response); err == nil {
+			return response.Results, nil
+		} else {
+			lastErr = err
+		}
+	}
+
+	return nil, lastErr
 }
 
 // GetCycle retrieves a specific cycle by ID
@@ -47,6 +52,9 @@ func (c *Client) GetCycle(projectID, cycleID string) (*plane.Cycle, error) {
 // CreateCycle creates a new cycle in a project
 func (c *Client) CreateCycle(projectID string, req plane.CreateCycleRequest) (*plane.Cycle, error) {
 	path := fmt.Sprintf("/workspaces/%s/projects/%s/cycles/", c.Workspace, projectID)
+	if req.ProjectID == "" {
+		req.ProjectID = projectID
+	}
 
 	var cycle plane.Cycle
 	if err := c.Post(path, req, &cycle); err != nil {
@@ -59,6 +67,9 @@ func (c *Client) CreateCycle(projectID string, req plane.CreateCycleRequest) (*p
 // UpdateCycle updates an existing cycle
 func (c *Client) UpdateCycle(projectID, cycleID string, req plane.UpdateCycleRequest) (*plane.Cycle, error) {
 	path := fmt.Sprintf("/workspaces/%s/projects/%s/cycles/%s/", c.Workspace, projectID, cycleID)
+	if req.ProjectID == "" {
+		req.ProjectID = projectID
+	}
 
 	var cycle plane.Cycle
 	if err := c.Patch(path, req, &cycle); err != nil {
@@ -77,12 +88,6 @@ func (c *Client) DeleteCycle(projectID, cycleID string) error {
 // ArchiveCycle archives a cycle
 func (c *Client) ArchiveCycle(projectID, cycleID string) error {
 	path := fmt.Sprintf("/workspaces/%s/projects/%s/cycles/%s/archive/", c.Workspace, projectID, cycleID)
-	return c.Post(path, nil, nil)
-}
-
-// UnarchiveCycle unarchives a cycle
-func (c *Client) UnarchiveCycle(projectID, cycleID string) error {
-	path := fmt.Sprintf("/workspaces/%s/projects/%s/cycles/%s/unarchive/", c.Workspace, projectID, cycleID)
 	return c.Post(path, nil, nil)
 }
 

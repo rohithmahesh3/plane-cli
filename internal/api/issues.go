@@ -11,14 +11,9 @@ import (
 
 type IssueListOptions struct {
 	State    string
-	Priority string
 	Assignee string
-	Label    string
-	Cycle    string
-	Module   string
-	Search   string
-	PerPage  int
-	Cursor   string
+	Limit    int
+	Offset   int
 }
 
 func (c *Client) ListIssues(projectID string, opts IssueListOptions) ([]plane.Issue, *Pagination, error) {
@@ -29,30 +24,14 @@ func (c *Client) ListIssues(projectID string, opts IssueListOptions) ([]plane.Is
 	if opts.State != "" {
 		query.Set("state", opts.State)
 	}
-	if opts.Priority != "" {
-		query.Set("priority", opts.Priority)
-	}
 	if opts.Assignee != "" {
 		query.Set("assignee", opts.Assignee)
 	}
-	if opts.Label != "" {
-		query.Set("label", opts.Label)
+	if opts.Limit > 0 {
+		query.Set("limit", fmt.Sprintf("%d", opts.Limit))
 	}
-	if opts.Cycle != "" {
-		query.Set("cycle", opts.Cycle)
-	}
-	if opts.Module != "" {
-		query.Set("module", opts.Module)
-	}
-	if opts.PerPage > 0 {
-		query.Set("limit", fmt.Sprintf("%d", opts.PerPage))
-		query.Set("per_page", fmt.Sprintf("%d", opts.PerPage))
-	}
-	if opts.Cursor != "" {
-		query.Set("cursor", opts.Cursor)
-	}
-	if opts.Search != "" {
-		query.Set("search", opts.Search)
+	if opts.Offset > 0 {
+		query.Set("offset", fmt.Sprintf("%d", opts.Offset))
 	}
 
 	var response Response

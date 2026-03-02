@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/rohithmahesh3/plane-cli/internal/config"
+	"github.com/rohithmahesh3/plane-cli/internal/integrationtest"
 	"github.com/rohithmahesh3/plane-cli/pkg/plane"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,6 +23,8 @@ import (
 // PLANE_API_HOST - API host URL (default: https://api.plane.so)
 
 func setupIntegrationClient(t *testing.T) *Client {
+	integrationtest.WaitForSlot(t)
+
 	apiKey := os.Getenv("PLANE_API_KEY")
 	if apiKey == "" {
 		t.Skip("PLANE_API_KEY not set, skipping integration test")
@@ -125,7 +128,7 @@ func TestIntegration_IssueLifecycle(t *testing.T) {
 
 	// List issues
 	opts := IssueListOptions{
-		PerPage: 10,
+		Limit: 10,
 	}
 	issues, pagination, err := client.ListIssues(projectID, opts)
 	require.NoError(t, err)
@@ -176,19 +179,10 @@ func TestIntegration_ListIssuesWithFilters(t *testing.T) {
 
 	// Test filtering by state
 	opts := IssueListOptions{
-		State:   "backlog",
-		PerPage: 5,
+		State: "backlog",
+		Limit: 5,
 	}
 	issues, _, err := client.ListIssues(projectID, opts)
 	require.NoError(t, err)
 	t.Logf("Found %d issues in backlog state", len(issues))
-
-	// Test filtering by priority
-	opts = IssueListOptions{
-		Priority: "high",
-		PerPage:  5,
-	}
-	issues, _, err = client.ListIssues(projectID, opts)
-	require.NoError(t, err)
-	t.Logf("Found %d issues with high priority", len(issues))
 }

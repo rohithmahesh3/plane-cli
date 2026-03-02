@@ -77,14 +77,6 @@ var archiveCmd = &cobra.Command{
 	RunE:  runArchive,
 }
 
-var unarchiveCmd = &cobra.Command{
-	Use:   "unarchive <id>",
-	Short: "Unarchive a module",
-	Long:  `Restore an archived module to active status.`,
-	Args:  cobra.ExactArgs(1),
-	RunE:  runUnarchive,
-}
-
 var issuesCmd = &cobra.Command{
 	Use:     "issues <id>",
 	Aliases: []string{"work-items"},
@@ -117,7 +109,6 @@ func init() {
 	ModuleCmd.AddCommand(editCmd)
 	ModuleCmd.AddCommand(deleteCmd)
 	ModuleCmd.AddCommand(archiveCmd)
-	ModuleCmd.AddCommand(unarchiveCmd)
 	ModuleCmd.AddCommand(issuesCmd)
 	ModuleCmd.AddCommand(addIssuesCmd)
 	ModuleCmd.AddCommand(removeIssueCmd)
@@ -387,27 +378,6 @@ func runArchive(cmd *cobra.Command, args []string) error {
 	}
 
 	output.Success(fmt.Sprintf("Archived module %s", moduleID))
-	return nil
-}
-
-func runUnarchive(cmd *cobra.Command, args []string) error {
-	projectID := config.Cfg.DefaultProject
-	if projectID == "" {
-		return fmt.Errorf("no project specified")
-	}
-
-	moduleID := args[0]
-
-	client, err := api.NewClient()
-	if err != nil {
-		return err
-	}
-
-	if err := client.UnarchiveModule(projectID, moduleID); err != nil {
-		return err
-	}
-
-	output.Success(fmt.Sprintf("Unarchived module %s", moduleID))
 	return nil
 }
 

@@ -14,6 +14,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func ensureTimeTrackingEnabled(client *api.Client, projectID string) error {
+	project, err := client.GetProject(projectID)
+	if err != nil {
+		return err
+	}
+	if !project.IsTimeTrackingEnabled {
+		return fmt.Errorf("time tracking is disabled for project %s", projectID)
+	}
+	return nil
+}
+
 var (
 	worklogDescription string
 	worklogDuration    string
@@ -100,6 +111,9 @@ func runTimeList(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	if err := ensureTimeTrackingEnabled(client, projectID); err != nil {
+		return err
+	}
 
 	worklogs, err := client.ListWorklogs(projectID, issueID)
 	if err != nil {
@@ -174,6 +188,9 @@ func runTimeLog(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	if err := ensureTimeTrackingEnabled(client, projectID); err != nil {
+		return err
+	}
 
 	req := plane.CreateWorklogRequest{
 		Description: worklogDescription,
@@ -201,6 +218,9 @@ func runTimeTotal(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	if err := ensureTimeTrackingEnabled(client, projectID); err != nil {
+		return err
+	}
 
 	totalMinutes, err := client.GetTotalWorklogTime(projectID, issueID)
 	if err != nil {
@@ -222,6 +242,9 @@ func runTimeEdit(cmd *cobra.Command, args []string) error {
 
 	client, err := api.NewClient()
 	if err != nil {
+		return err
+	}
+	if err := ensureTimeTrackingEnabled(client, projectID); err != nil {
 		return err
 	}
 
@@ -309,6 +332,9 @@ func runTimeDelete(cmd *cobra.Command, args []string) error {
 
 	client, err := api.NewClient()
 	if err != nil {
+		return err
+	}
+	if err := ensureTimeTrackingEnabled(client, projectID); err != nil {
 		return err
 	}
 

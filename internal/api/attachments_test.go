@@ -108,10 +108,6 @@ func TestUploadAttachment(t *testing.T) {
 				},
 			})
 			require.NoError(t, err)
-		case r.Method == http.MethodPost && r.URL.Path == "/api/v1/workspaces/test-workspace/projects/test-project/work-items/issue-123/attachments/attachment-456/complete-upload/":
-			http.Error(w, `{"error":"Page not found."}`, http.StatusNotFound)
-		case r.Method == http.MethodPost && r.URL.Path == "/api/v1/workspaces/test-workspace/projects/test-project/work-items/issue-123/attachments/complete-upload/":
-			http.Error(w, `{"error":"Page not found."}`, http.StatusNotFound)
 		case r.Method == http.MethodPatch && r.URL.Path == "/api/v1/workspaces/test-workspace/projects/test-project/work-items/issue-123/attachments/attachment-456/":
 			var req map[string]bool
 			err := json.NewDecoder(r.Body).Decode(&req)
@@ -151,4 +147,30 @@ func TestUploadAttachment(t *testing.T) {
 	assert.Equal(t, "attachment-456", attachment.ID)
 	assert.True(t, attachment.IsUploaded)
 	assert.Equal(t, "upload.txt", attachment.Attributes.Name)
+}
+
+func TestGetAttachment(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+		assert.Equal(t, "/api/v1/workspaces/test-workspace/projects/test-project/work-items/issue-123/attachments/attachment-456/", r.URL.Path)
+
+		err := json.NewEncoder(w).Encode(plane.Attachment{
+			ID:         "attachment-456",
+			IsUploaded: true,
+		})
+		require.NoError(t, err)
+	}))
+	defer server.Close()
+
+	client := &Client{
+		HTTPClient: server.Client(),
+		BaseURL:    server.URL,
+		APIKey:     "test-key",
+		Workspace:  "test-workspace",
+	}
+
+	attachment, err := client.GetAttachment("test-project", "issue-123", "attachment-456")
+	require.NoError(t, err)
+	assert.Equal(t, "attachment-456", attachment.ID)
+	assert.True(t, attachment.IsUploaded)
 }

@@ -109,13 +109,20 @@ func TestGetTotalWorklogTime(t *testing.T) {
 		if r.Method != "GET" {
 			t.Errorf("Expected GET request, got %s", r.Method)
 		}
-		if r.URL.Path != "/api/v1/workspaces/test-workspace/projects/test-project/work-items/issue-123/worklogs/total/" {
+		if r.URL.Path != "/api/v1/workspaces/test-workspace/projects/test-project/work-items/issue-123/worklogs/" {
 			t.Errorf("Unexpected path: %s", r.URL.Path)
 		}
 
-		total := plane.WorklogTotal{TotalTime: 150}
+		response := struct {
+			Results []plane.Worklog `json:"results"`
+		}{
+			Results: []plane.Worklog{
+				{ID: "worklog-1", Duration: 60},
+				{ID: "worklog-2", Duration: 90},
+			},
+		}
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(total)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 

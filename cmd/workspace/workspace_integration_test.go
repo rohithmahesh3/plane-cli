@@ -5,15 +5,21 @@ package workspace
 
 import (
 	"bytes"
+	"io"
 	"os"
+	"strings"
 	"testing"
 
+	"github.com/rohithmahesh3/plane-cli/internal/api"
 	"github.com/rohithmahesh3/plane-cli/internal/config"
+	"github.com/rohithmahesh3/plane-cli/internal/integrationtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func setupTestEnvironment(t *testing.T) {
+	integrationtest.WaitForSlot(t)
+
 	apiKey := os.Getenv("PLANE_API_KEY")
 	if apiKey == "" {
 		t.Skip("PLANE_API_KEY not set, skipping integration test")
@@ -50,4 +56,66 @@ func TestWorkspaceInfoIntegration(t *testing.T) {
 
 	err := runInfo(cmd, []string{})
 	assert.NoError(t, err)
+}
+
+func TestWorkspaceMembersSearchIntegration(t *testing.T) {
+	setupTestEnvironment(t)
+
+	client, err := api.NewClient()
+	require.NoError(t, err)
+
+	members, err := client.GetWorkspaceMembers()
+	require.NoError(t, err)
+	require.NotEmpty(t, members)
+
+	target := members[0]
+	querySource := target.DisplayName
+	if querySource == "" {
+		querySource = target.Email
+	}
+	require.NotEmpty(t, querySource)
+
+	query := strings.ToLower(querySource)
+	if len(query) > 3 {
+		query = query[:3]
+	}
+
+	memberSearch = query
+	memberExact = false
+	memberLimit = 0
+	t.Cleanup(func() {
+		memberSearch = ""
+		memberExact = false
+		memberLimit = 0
+	})
+
+	output := captureStdout(t, func() {
+		err = runMembers(membersCmd, []string{})
+	})
+
+	require.NoError(t, err)
+	assert.Contains(t, output, target.ID)
+}
+
+func captureStdout(t *testing.T, fn func()) string {
+	t.Helper()
+
+	oldStdout := os.Stdout
+	reader, writer, err := os.Pipe()
+	require.NoError(t, err)
+
+	os.Stdout = writer
+	t.Cleanup(func() {
+		os.Stdout = oldStdout
+	})
+
+	fn()
+
+	require.NoError(t, writer.Close())
+	output, err := io.ReadAll(reader)
+	require.NoError(t, err)
+	require.NoError(t, reader.Close())
+
+	os.Stdout = oldStdout
+	return string(output)
 }

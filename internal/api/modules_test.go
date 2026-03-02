@@ -53,6 +53,49 @@ func TestListModules(t *testing.T) {
 	}
 }
 
+func TestListArchivedModules(t *testing.T) {
+	mockModules := []plane.Module{
+		{ID: "module-archived-1", Name: "Legacy Module", ArchivedAt: "2026-02-01T00:00:00Z"},
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			t.Errorf("Expected GET request, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/v1/workspaces/test-workspace/projects/test-project/modules/archived/" {
+			t.Errorf("Unexpected path: %s", r.URL.Path)
+		}
+
+		response := struct {
+			Results []plane.Module `json:"results"`
+		}{
+			Results: mockModules,
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(response)
+	}))
+	defer server.Close()
+
+	client := &Client{
+		HTTPClient: server.Client(),
+		BaseURL:    server.URL,
+		APIKey:     "test-key",
+		Workspace:  "test-workspace",
+	}
+
+	modules, err := client.ListModules("test-project", true)
+	if err != nil {
+		t.Fatalf("ListModules archived failed: %v", err)
+	}
+
+	if len(modules) != 1 {
+		t.Fatalf("Expected 1 archived module, got %d", len(modules))
+	}
+	if modules[0].ID != "module-archived-1" {
+		t.Errorf("Expected archived module ID 'module-archived-1', got '%s'", modules[0].ID)
+	}
+}
+
 func TestCreateModule(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {

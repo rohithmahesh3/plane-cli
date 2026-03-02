@@ -6,16 +6,21 @@ package issue
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/rohithmahesh3/plane-cli/internal/api"
 	"github.com/rohithmahesh3/plane-cli/internal/config"
+	"github.com/rohithmahesh3/plane-cli/internal/integrationtest"
 	"github.com/rohithmahesh3/plane-cli/pkg/plane"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func setupTestEnvironment(t *testing.T) *api.Client {
+	integrationtest.WaitForSlot(t)
+
 	apiKey := os.Getenv("PLANE_API_KEY")
 	if apiKey == "" {
 		t.Skip("PLANE_API_KEY not set, skipping integration test")
@@ -26,11 +31,6 @@ func setupTestEnvironment(t *testing.T) *api.Client {
 		t.Skip("PLANE_WORKSPACE not set, skipping integration test")
 	}
 
-	projectID := os.Getenv("PLANE_PROJECT")
-	if projectID == "" {
-		t.Skip("PLANE_PROJECT not set, skipping integration test")
-	}
-
 	apiHost := os.Getenv("PLANE_API_HOST")
 	if apiHost == "" {
 		apiHost = "https://api.plane.so"
@@ -38,7 +38,6 @@ func setupTestEnvironment(t *testing.T) *api.Client {
 
 	config.Cfg.APIHost = apiHost
 	config.Cfg.DefaultWorkspace = workspace
-	config.Cfg.DefaultProject = projectID
 	config.Cfg.OutputFormat = "json"
 
 	originalService := config.KeyringService
@@ -56,13 +55,23 @@ func setupTestEnvironment(t *testing.T) *api.Client {
 
 	client, err := api.NewClient()
 	require.NoError(t, err)
+
+	projectID := os.Getenv("PLANE_PROJECT")
+	if projectID == "" {
+		projects, err := client.ListProjects()
+		require.NoError(t, err)
+		require.NotEmpty(t, projects, "expected at least one project for integration tests")
+		projectID = projects[0].ID
+	}
+	config.Cfg.DefaultProject = projectID
+
 	return client
 }
 
 func createTestIssue(t *testing.T, client *api.Client) *plane.Issue {
 	projectID := config.Cfg.DefaultProject
 	req := plane.CreateIssueRequest{
-		Name:        fmt.Sprintf("Test Issue %d", os.Getpid()),
+		Name:        fmt.Sprintf("Test Issue %d", time.Now().UnixNano()),
 		Description: "Integration test issue",
 		Priority:    "low",
 	}
@@ -96,7 +105,16 @@ func TestResolveAssigneeByUUID(t *testing.T) {
 	client := setupTestEnvironment(t)
 	projectID := config.Cfg.DefaultProject
 
-	uuid := "a9bae425-06ff-4cf2-b1c5-2b6cc6b5d810"
+	assigneeUsername := os.Getenv("PLANE_TEST_ASSIGNEE")
+	if assigneeUsername == "" {
+		t.Skip("PLANE_TEST_ASSIGNEE not set, skipping assignee test")
+	}
+
+	resolvedByName, err := client.ResolveAssignees(projectID, []string{assigneeUsername})
+	require.NoError(t, err)
+	require.Len(t, resolvedByName, 1)
+
+	uuid := resolvedByName[0]
 
 	resolved, err := client.ResolveAssignees(projectID, []string{uuid})
 	require.NoError(t, err)
@@ -113,11 +131,33 @@ func TestResolveAssigneeNotFound(t *testing.T) {
 	assert.Contains(t, err.Error(), "not found")
 }
 
+func TestResolveAssigneeNotFoundIncludesSuggestions(t *testing.T) {
+	client := setupTestEnvironment(t)
+	projectID := config.Cfg.DefaultProject
+
+	assigneeUsername := os.Getenv("PLANE_TEST_ASSIGNEE")
+	if len(assigneeUsername) < 2 {
+		t.Skip("PLANE_TEST_ASSIGNEE must be set to at least 2 characters")
+	}
+
+	query := assigneeUsername[:len(assigneeUsername)-1]
+
+	_, err := client.ResolveAssignees(projectID, []string{query})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Closest matches:")
+	assert.Contains(t, err.Error(), "plane workspace members --search")
+	assert.Contains(t, strings.ToLower(err.Error()), strings.ToLower(assigneeUsername))
+}
+
 func TestResolveStateByName(t *testing.T) {
 	client := setupTestEnvironment(t)
 	projectID := config.Cfg.DefaultProject
 
-	resolved, err := client.ResolveState(projectID, "Todo")
+	states, err := client.ListStates(projectID)
+	require.NoError(t, err)
+	require.NotEmpty(t, states)
+
+	resolved, err := client.ResolveState(projectID, states[0].Name)
 	require.NoError(t, err)
 	assert.NotEmpty(t, resolved)
 	assert.Len(t, resolved, 36, "Expected UUID format")
@@ -127,11 +167,17 @@ func TestResolveStateCaseInsensitive(t *testing.T) {
 	client := setupTestEnvironment(t)
 	projectID := config.Cfg.DefaultProject
 
-	resolved, err := client.ResolveState(projectID, "TODO")
+	states, err := client.ListStates(projectID)
+	require.NoError(t, err)
+	require.NotEmpty(t, states)
+
+	stateName := states[0].Name
+
+	resolved, err := client.ResolveState(projectID, strings.ToUpper(stateName))
 	require.NoError(t, err)
 	assert.NotEmpty(t, resolved)
 
-	resolved2, err := client.ResolveState(projectID, "todo")
+	resolved2, err := client.ResolveState(projectID, strings.ToLower(stateName))
 	require.NoError(t, err)
 	assert.Equal(t, resolved, resolved2)
 }
@@ -140,7 +186,11 @@ func TestResolveStateByUUID(t *testing.T) {
 	client := setupTestEnvironment(t)
 	projectID := config.Cfg.DefaultProject
 
-	uuid := "1578ec52-0083-440d-b370-b3c9286bc091"
+	states, err := client.ListStates(projectID)
+	require.NoError(t, err)
+	require.NotEmpty(t, states)
+
+	uuid := states[0].ID
 
 	resolved, err := client.ResolveState(projectID, uuid)
 	require.NoError(t, err)
@@ -301,7 +351,11 @@ func TestIssueEditWithStateIntegration(t *testing.T) {
 	issue := createTestIssue(t, client)
 	defer cleanupTestIssue(t, client, issue.ID)
 
-	resolvedState, err := client.ResolveState(projectID, "Done")
+	states, err := client.ListStates(projectID)
+	require.NoError(t, err)
+	require.NotEmpty(t, states)
+
+	resolvedState, err := client.ResolveState(projectID, states[0].Name)
 	require.NoError(t, err, "Failed to resolve state name to UUID")
 
 	updateReq := plane.UpdateIssueRequest{
@@ -322,10 +376,19 @@ func TestResolverCaching(t *testing.T) {
 	client := setupTestEnvironment(t)
 	projectID := config.Cfg.DefaultProject
 
-	_, err := client.ResolveState(projectID, "Todo")
+	states, err := client.ListStates(projectID)
+	require.NoError(t, err)
+	require.NotEmpty(t, states)
+
+	_, err = client.ResolveState(projectID, states[0].Name)
 	require.NoError(t, err)
 
-	_, err = client.ResolveState(projectID, "Backlog")
+	secondState := states[0].Name
+	if len(states) > 1 {
+		secondState = states[1].Name
+	}
+
+	_, err = client.ResolveState(projectID, secondState)
 	require.NoError(t, err)
 
 	api.ClearResolverCache()

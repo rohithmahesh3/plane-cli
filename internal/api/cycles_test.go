@@ -53,6 +53,49 @@ func TestListCycles(t *testing.T) {
 	}
 }
 
+func TestListArchivedCycles(t *testing.T) {
+	mockCycles := []plane.Cycle{
+		{ID: "cycle-archived-1", Name: "Sprint 0", ArchivedAt: "2026-02-01T00:00:00Z"},
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			t.Errorf("Expected GET request, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/v1/workspaces/test-workspace/projects/test-project/cycles/archived/" {
+			t.Errorf("Unexpected path: %s", r.URL.Path)
+		}
+
+		response := struct {
+			Results []plane.Cycle `json:"results"`
+		}{
+			Results: mockCycles,
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(response)
+	}))
+	defer server.Close()
+
+	client := &Client{
+		HTTPClient: server.Client(),
+		BaseURL:    server.URL,
+		APIKey:     "test-key",
+		Workspace:  "test-workspace",
+	}
+
+	cycles, err := client.ListCycles("test-project", true)
+	if err != nil {
+		t.Fatalf("ListCycles archived failed: %v", err)
+	}
+
+	if len(cycles) != 1 {
+		t.Fatalf("Expected 1 archived cycle, got %d", len(cycles))
+	}
+	if cycles[0].ID != "cycle-archived-1" {
+		t.Errorf("Expected archived cycle ID 'cycle-archived-1', got '%s'", cycles[0].ID)
+	}
+}
+
 func TestCreateCycle(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {

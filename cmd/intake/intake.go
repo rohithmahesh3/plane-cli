@@ -14,7 +14,6 @@ import (
 var (
 	intakeName     string
 	intakePriority string
-	intakeStatus   int
 )
 
 var IntakeCmd = &cobra.Command{
@@ -51,14 +50,6 @@ Examples:
 	RunE: runCreate,
 }
 
-var updateCmd = &cobra.Command{
-	Use:   "update <id>",
-	Short: "Update intake issue status",
-	Long:  `Update the status of an intake issue (accept, reject, snooze, etc.).`,
-	Args:  cobra.ExactArgs(1),
-	RunE:  runUpdate,
-}
-
 var deleteCmd = &cobra.Command{
 	Use:     "delete <id>",
 	Aliases: []string{"rm", "remove"},
@@ -72,15 +63,11 @@ func init() {
 	IntakeCmd.AddCommand(listCmd)
 	IntakeCmd.AddCommand(viewCmd)
 	IntakeCmd.AddCommand(createCmd)
-	IntakeCmd.AddCommand(updateCmd)
 	IntakeCmd.AddCommand(deleteCmd)
 
 	// Create flags
 	createCmd.Flags().StringVarP(&intakeName, "name", "n", "", "Issue name/title")
 	createCmd.Flags().StringVarP(&intakePriority, "priority", "p", "medium", "Issue priority (low, medium, high, urgent)")
-
-	// Update flags
-	updateCmd.Flags().IntVarP(&intakeStatus, "status", "s", 0, "Status (-2: Pending, -1: Rejected, 0: Snoozed, 1: Accepted, 2: Duplicate)")
 }
 
 func runList(cmd *cobra.Command, args []string) error {
@@ -196,58 +183,6 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	}
 
 	output.Success(fmt.Sprintf("Created intake issue (%s)", intake.ID))
-	return nil
-}
-
-func runUpdate(cmd *cobra.Command, args []string) error {
-	projectID := config.Cfg.DefaultProject
-	if projectID == "" {
-		return fmt.Errorf("no project specified")
-	}
-
-	intakeID := args[0]
-
-	client, err := api.NewClient()
-	if err != nil {
-		return err
-	}
-
-	// If no status flag provided, prompt interactively
-	if !cmd.Flags().Changed("status") {
-		statusOptions := []string{"Pending", "Rejected", "Snoozed", "Accepted", "Duplicate"}
-		var selected string
-		prompt := &survey.Select{
-			Message: "New status:",
-			Options: statusOptions,
-		}
-		if err := survey.AskOne(prompt, &selected); err != nil {
-			return err
-		}
-
-		switch selected {
-		case "Pending":
-			intakeStatus = -2
-		case "Rejected":
-			intakeStatus = -1
-		case "Snoozed":
-			intakeStatus = 0
-		case "Accepted":
-			intakeStatus = 1
-		case "Duplicate":
-			intakeStatus = 2
-		}
-	}
-
-	req := plane.UpdateIntakeIssueRequest{
-		Status: intakeStatus,
-	}
-
-	_, err = client.UpdateIntakeIssue(projectID, intakeID, req)
-	if err != nil {
-		return err
-	}
-
-	output.Success(fmt.Sprintf("Updated intake issue status to %s", formatIntakeStatus(intakeStatus)))
 	return nil
 }
 

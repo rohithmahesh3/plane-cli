@@ -78,10 +78,8 @@ func getGlobalFlags() string {
 func getIssueCommands() string {
 	return `## Issue (aliases: i, issues, ticket)
 ` + "```" + `
-plane issue list [--state <name:text>] [--priority <enum:low|medium|high|urgent>]
-                 [--assignee <@username:text>] [--label <name:text>]
-                 [--cycle <name:text>] [--module <name:text>]
-                 [--limit <count:int>] [--all]
+plane issue list [--state <name:text>] [--assignee <@username:text>]
+                 [--limit <count:int>]
 
 plane issue view <id:seq_id|uuid>
 
@@ -142,7 +140,6 @@ plane module create [--name <text>] [--description <text>]
 plane module edit <id:uuid> [--name <text>] [--description <text>] [--status <enum:...>]
 plane module delete <id:uuid>
 plane module archive <id:uuid>
-plane module unarchive <id:uuid>
 plane module issues <id:uuid>
 plane module add-issues <module-id:uuid> <issue-ids:uuid...>
 plane module remove-issue <module-id:uuid> <issue-id:uuid>
@@ -154,10 +151,8 @@ plane module remove-issue <module-id:uuid> <issue-id:uuid>
 func getPageCommands() string {
 	return `## Page (aliases: pages, doc, wiki)
 ` + "```" + `
-plane page list [--workspace]
 plane page view <id:uuid>
 plane page create [--name <text>] [--description <markdown:text>] [--workspace]
-plane page delete <id:uuid>
 ` + "```" + `
 
 `
@@ -198,7 +193,6 @@ func getIntakeCommands() string {
 plane intake list
 plane intake view <id:uuid>
 plane intake create [--name <text>] [--priority <enum:low|medium|high|urgent>]
-plane intake update <id:uuid> [--status <enum:-2:Pending|-1:Rejected|0:Snoozed|1:Accepted|2:Duplicate>]
 plane intake delete <id:uuid>
 ` + "```" + `
 
@@ -227,7 +221,6 @@ plane cycle edit <id:uuid> [--name <text>] [--description <text>]
                  [--start-date <YYYY-MM-DD>] [--end-date <YYYY-MM-DD>]
 plane cycle delete <id:uuid>
 plane cycle archive <id:uuid>
-plane cycle unarchive <id:uuid>
 plane cycle issues <id:uuid>
 plane cycle add-issues <cycle-id:uuid> <issue-ids:uuid...>
 plane cycle remove-issue <cycle-id:uuid> <issue-id:uuid>
@@ -249,7 +242,7 @@ plane epic view <id:uuid>
 func getProjectCommands() string {
 	return `## Project (aliases: proj)
 ` + "```" + `
-plane project list [--all]
+plane project list
 plane project create [<name:text>]
 plane project info [<id:uuid>]
 plane project delete <id:uuid>
@@ -264,7 +257,7 @@ func getWorkspaceCommands() string {
 ` + "```" + `
 plane workspace info [<slug:text>]
 plane workspace switch [<slug:text>]
-plane workspace members
+plane workspace members [--search <text>] [--exact] [--limit <count:int>]
 ` + "```" + `
 
 `

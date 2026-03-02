@@ -14,13 +14,8 @@ import (
 
 var (
 	stateFilter    string
-	priorityFilter string
 	assigneeFilter string
-	labelFilter    string
-	cycleFilter    string
-	moduleFilter   string
 	perPage        int
-	allFlag        bool
 
 	issueTitle       string
 	issueDescription string
@@ -46,8 +41,7 @@ var listCmd = &cobra.Command{
 Examples:
   plane issue list
   plane issue list --state backlog
-  plane issue list --priority high --assignee @alice
-  plane issue list --label bug --cycle "Sprint 1"`,
+  plane issue list --assignee @alice`,
 	RunE: runList,
 }
 
@@ -105,13 +99,8 @@ func init() {
 
 	// List flags
 	listCmd.Flags().StringVarP(&stateFilter, "state", "s", "", "Filter by state (backlog, todo, in-progress, done)")
-	listCmd.Flags().StringVar(&priorityFilter, "priority", "", "Filter by priority (low, medium, high, urgent)")
 	listCmd.Flags().StringVar(&assigneeFilter, "assignee", "", "Filter by assignee (@username or 'me')")
-	listCmd.Flags().StringVar(&labelFilter, "label", "", "Filter by label")
-	listCmd.Flags().StringVar(&cycleFilter, "cycle", "", "Filter by cycle name")
-	listCmd.Flags().StringVar(&moduleFilter, "module", "", "Filter by module name")
 	listCmd.Flags().IntVarP(&perPage, "limit", "l", 20, "Number of issues to show per page")
-	listCmd.Flags().BoolVarP(&allFlag, "all", "a", false, "Show all issues (fetch all pages)")
 
 	// Create flags
 	createCmd.Flags().StringVarP(&issueTitle, "title", "t", "", "Issue title")
@@ -142,12 +131,8 @@ func runList(cmd *cobra.Command, args []string) error {
 
 	opts := api.IssueListOptions{
 		State:    stateFilter,
-		Priority: priorityFilter,
 		Assignee: assigneeFilter,
-		Label:    labelFilter,
-		Cycle:    cycleFilter,
-		Module:   moduleFilter,
-		PerPage:  perPage,
+		Limit:    perPage,
 	}
 
 	issues, _, err := client.ListIssues(projectID, opts)

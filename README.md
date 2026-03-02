@@ -10,7 +10,7 @@ A powerful command-line interface for [Plane](https://plane.so) - the open-sourc
 - 🔐 **Secure Authentication** - API key stored in OS keyring
 - 📊 **Multiple Output Formats** - Table, JSON, and YAML
 - 🎯 **Interactive Mode** - Prompts for missing required fields
-- 🔍 **Advanced Filtering** - Filter issues by state, priority, assignee, labels, cycles, and modules
+- 🔍 **Work Item Filtering** - Filter work items by state and assignee
 - ⚡ **Fast & Lightweight** - Single binary, no dependencies
 - 🎨 **Beautiful Output** - Colored and formatted tables
 - 🔧 **Shell Completion** - Bash, Zsh, Fish, and PowerShell support
@@ -53,10 +53,10 @@ You'll need an API key from Plane:
 3. Create a new token
 4. Use it when prompted
 
-### 2. List Workspaces
+### 2. Check Workspace Access
 
 ```bash
-plane workspace list
+plane workspace info
 ```
 
 ### 3. List Projects
@@ -118,6 +118,9 @@ plane workspace switch my-workspace
 
 # List workspace members
 plane workspace members
+
+# Search workspace members before assigning issues
+plane workspace members --search roh
 ```
 
 ### Projects
@@ -125,9 +128,6 @@ plane workspace members
 ```bash
 # List projects
 plane project list
-
-# List all accessible projects
-plane project list --all
 
 # Create a new project
 plane project create
@@ -149,9 +149,8 @@ plane project members PROJECT_ID
 plane issue list
 
 # List with filters
-plane issue list --state backlog --priority high
-plane issue list --assignee @alice --label bug
-plane issue list --cycle "Sprint 1" --module "Authentication"
+plane issue list --state backlog
+plane issue list --assignee @alice
 
 # View issue details (supports sequence ID or UUID)
 plane issue view 123
@@ -270,9 +269,8 @@ plane cycle edit CYCLE_ID --name "Sprint 1 (Revised)"
 # Delete a cycle
 plane cycle delete CYCLE_ID
 
-# Archive/unarchive
+# Archive
 plane cycle archive CYCLE_ID
-plane cycle unarchive CYCLE_ID
 
 # List issues in a cycle
 plane cycle issues CYCLE_ID
@@ -305,9 +303,8 @@ plane module edit MODULE_ID --status completed
 # Delete a module
 plane module delete MODULE_ID
 
-# Archive/unarchive
+# Archive
 plane module archive MODULE_ID
-plane module unarchive MODULE_ID
 
 # List issues in a module
 plane module issues MODULE_ID
@@ -322,12 +319,6 @@ plane module remove-issue MODULE_ID ISSUE_ID
 ### Pages (Documentation)
 
 ```bash
-# List project pages
-plane page list
-
-# List workspace pages
-plane page list --workspace
-
 # View page details
 plane page view PAGE_ID
 
@@ -335,8 +326,6 @@ plane page view PAGE_ID
 plane page create --name "API Documentation"
 plane page create --name "Team Guidelines" --workspace
 
-# Delete a page
-plane page delete PAGE_ID
 ```
 
 ### States (Workflow)
@@ -398,9 +387,6 @@ plane intake view INTAKE_ID
 
 # Create an intake issue
 plane intake create --name "Feature Request" --priority high
-
-# Update intake status
-plane intake update INTAKE_ID --status 1  # 1=Accepted
 
 # Delete an intake issue
 plane intake delete INTAKE_ID
@@ -487,7 +473,7 @@ This CLI uses the [Plane REST API](https://developers.plane.so/api-reference/int
 Supported features:
 - ✅ Workspaces (info, switch, members)
 - ✅ Projects (list, create, info, delete, members)
-- ✅ Issues/Work Items (list, create, edit, delete, search, filter)
+- ✅ Issues/Work Items (list, create, edit, delete, search)
 - ✅ Issue Comments (list, add, delete)
 - ✅ Issue Links (list, add, delete)
 - ✅ Issue Time Tracking (list, log, edit, delete, total)
@@ -495,11 +481,11 @@ Supported features:
 - ✅ Issue Activity History (list, view)
 - ✅ Cycles (list, create, edit, delete, archive, issues management)
 - ✅ Modules (list, create, edit, delete, archive, issues management)
-- ✅ Pages/Documentation (list, create, view, delete)
+- ✅ Pages/Documentation (create, view)
 - ✅ States/Workflow (list, create, edit, delete)
 - ✅ Labels (list, create, edit, delete)
 - ✅ Epics (list, view)
-- ✅ Intake/Inbox (list, create, view, update, delete)
+- ✅ Intake/Inbox (list, create, view, delete)
 - ✅ Issue Types (list, create, delete)
 - ✅ AI Context Generation
 
