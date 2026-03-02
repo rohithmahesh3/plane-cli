@@ -52,7 +52,9 @@ func setupTestEnvironment(t *testing.T) {
 	t.Cleanup(func() { config.KeyringService = originalService; config.DeleteAPIKey() })
 
 	err := config.SetAPIKey(apiKey)
-	require.NoError(t, err)
+	if err != nil {
+		t.Skipf("Keyring not available in test environment: %v", err)
+	}
 }
 
 func TestIssueSearchIntegration(t *testing.T) {
