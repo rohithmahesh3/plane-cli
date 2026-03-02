@@ -10,8 +10,8 @@ import (
 )
 
 type IssueListOptions struct {
-	State    string
-	Assignee string
+	State    string // State UUID or name (resolved by caller for consistent behavior)
+	Assignee string // Assignee UUID or "me" (resolved by caller for consistent behavior)
 	Limit    int
 	Offset   int
 }

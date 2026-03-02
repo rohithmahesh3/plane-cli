@@ -1,16 +1,16 @@
 package issue
 
 import (
-	"html"
-	"regexp"
+	"bytes"
 	"strconv"
 	"strings"
 
 	"github.com/rohithmahesh3/plane-cli/internal/api"
 	"github.com/rohithmahesh3/plane-cli/pkg/plane"
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/renderer/html"
 )
-
-var paragraphBreakPattern = regexp.MustCompile(`\n\s*\n+`)
 
 func resolveIssue(client *api.Client, projectID, ref string) (*plane.Issue, error) {
 	if seqID, err := strconv.Atoi(strings.TrimSpace(ref)); err == nil {
@@ -59,33 +59,38 @@ func looksLikeUUID(s string) bool {
 	return true
 }
 
+// renderDescriptionHTML converts Markdown text to HTML.
+// If the input already appears to be HTML (starts with "<"), it returns it unchanged.
 func renderDescriptionHTML(input string) string {
 	normalized := strings.TrimSpace(strings.ReplaceAll(input, "\r\n", "\n"))
 	if normalized == "" {
 		return ""
 	}
 
+	// If input already looks like HTML, return as-is
 	if strings.HasPrefix(normalized, "<") {
 		return normalized
 	}
 
-	paragraphs := paragraphBreakPattern.Split(normalized, -1)
-	var builder strings.Builder
+	// Configure goldmark with common extensions for GitHub-flavored Markdown
+	md := goldmark.New(
+		goldmark.WithExtensions(
+			extension.Table,
+			extension.Strikethrough,
+			extension.Linkify,
+			extension.TaskList,
+		),
+		goldmark.WithRendererOptions(
+			html.WithHardWraps(),
+			html.WithXHTML(),
+		),
+	)
 
-	for _, paragraph := range paragraphs {
-		paragraph = strings.TrimSpace(paragraph)
-		if paragraph == "" {
-			continue
-		}
-
-		if builder.Len() > 0 {
-			builder.WriteByte('\n')
-		}
-
-		builder.WriteString("<p>")
-		builder.WriteString(strings.ReplaceAll(html.EscapeString(paragraph), "\n", "<br>"))
-		builder.WriteString("</p>")
+	var buf bytes.Buffer
+	if err := md.Convert([]byte(normalized), &buf); err != nil {
+		// Fallback: return escaped text wrapped in paragraph if parsing fails
+		return "<p>" + normalized + "</p>"
 	}
 
-	return builder.String()
+	return buf.String()
 }

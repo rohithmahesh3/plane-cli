@@ -128,9 +128,36 @@ func runList(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// Resolve state and assignee to UUIDs for consistent API behavior
+	resolvedState := stateFilter
+	if stateFilter != "" {
+		resolvedState, err = client.ResolveState(projectID, stateFilter)
+		if err != nil {
+			return fmt.Errorf("failed to resolve state '%s': %w", stateFilter, err)
+		}
+	}
+
+	resolvedAssignee := assigneeFilter
+	if assigneeFilter != "" {
+		// Handle special case "me" for current user
+		if assigneeFilter == "me" {
+			// Keep as "me" - API supports this special value
+			resolvedAssignee = assigneeFilter
+		} else {
+			// Resolve username to UUID
+			assignees, err := client.ResolveAssignees(projectID, []string{assigneeFilter})
+			if err != nil {
+				return fmt.Errorf("failed to resolve assignee '%s': %w", assigneeFilter, err)
+			}
+			if len(assignees) > 0 {
+				resolvedAssignee = assignees[0]
+			}
+		}
+	}
+
 	opts := api.IssueListOptions{
-		State:    stateFilter,
-		Assignee: assigneeFilter,
+		State:    resolvedState,
+		Assignee: resolvedAssignee,
 		Limit:    perPage,
 	}
 

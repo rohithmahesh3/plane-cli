@@ -347,26 +347,6 @@ type Epic struct {
 	UpdatedAt           time.Time `json:"updated_at,omitempty"`
 }
 
-type Page struct {
-	ID              string    `json:"id"`
-	Name            string    `json:"name"`
-	DescriptionHTML string    `json:"description_html,omitempty"`
-	CreatedBy       string    `json:"created_by,omitempty"`
-	UpdatedBy       string    `json:"updated_by,omitempty"`
-	CreatedAt       time.Time `json:"created_at,omitempty"`
-	UpdatedAt       time.Time `json:"updated_at,omitempty"`
-}
-
-type CreatePageRequest struct {
-	Name            string `json:"name"`
-	DescriptionHTML string `json:"description_html,omitempty"`
-}
-
-type UpdatePageRequest struct {
-	Name            string `json:"name,omitempty"`
-	DescriptionHTML string `json:"description_html,omitempty"`
-}
-
 type IntakeIssue struct {
 	ID          string    `json:"id"`
 	Status      int       `json:"status"`
