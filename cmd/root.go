@@ -10,6 +10,7 @@ import (
 	"github.com/rohithmahesh3/plane-cli/cmd/issue"
 	"github.com/rohithmahesh3/plane-cli/cmd/module"
 	"github.com/rohithmahesh3/plane-cli/cmd/project"
+	issuetype "github.com/rohithmahesh3/plane-cli/cmd/type"
 	"github.com/rohithmahesh3/plane-cli/cmd/workspace"
 	cfg "github.com/rohithmahesh3/plane-cli/internal/config"
 	"github.com/spf13/cobra"
@@ -89,6 +90,7 @@ func init() {
 	rootCmd.AddCommand(cycle.CycleCmd)
 	rootCmd.AddCommand(module.ModuleCmd)
 	rootCmd.AddCommand(config.ConfigCmd)
+	rootCmd.AddCommand(issuetype.TypeCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(completionCmd)
 }
