@@ -49,7 +49,7 @@ Get started:
 	SilenceUsage: true,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		// Skip config initialization for certain commands
-		if cmd.Name() == "login" || cmd.Name() == "version" || cmd.Name() == "completion" {
+		if cmd.Name() == "login" || cmd.Name() == "version" || cmd.Name() == "completion" || cmd.Name() == "init" {
 			return nil
 		}
 
@@ -88,6 +88,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "Config file path (default: ~/.config/plane-cli/config.yaml)")
 
 	// Add subcommands
+	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(auth.AuthCmd)
 	rootCmd.AddCommand(workspace.WorkspaceCmd)
 	rootCmd.AddCommand(project.ProjectCmd)
