@@ -5,15 +5,18 @@ package issue
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"testing"
 
+	"github.com/rohithmahesh3/plane-cli/internal/api"
 	"github.com/rohithmahesh3/plane-cli/internal/config"
+	"github.com/rohithmahesh3/plane-cli/pkg/plane"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func setupTestEnvironment(t *testing.T) {
+func setupTestEnvironment(t *testing.T) *api.Client {
 	apiKey := os.Getenv("PLANE_API_KEY")
 	if apiKey == "" {
 		t.Skip("PLANE_API_KEY not set, skipping integration test")
@@ -21,7 +24,12 @@ func setupTestEnvironment(t *testing.T) {
 
 	workspace := os.Getenv("PLANE_WORKSPACE")
 	if workspace == "" {
-		workspace = "test-workspace"
+		t.Skip("PLANE_WORKSPACE not set, skipping integration test")
+	}
+
+	projectID := os.Getenv("PLANE_PROJECT")
+	if projectID == "" {
+		t.Skip("PLANE_PROJECT not set, skipping integration test")
 	}
 
 	apiHost := os.Getenv("PLANE_API_HOST")
@@ -29,24 +37,11 @@ func setupTestEnvironment(t *testing.T) {
 		apiHost = "https://api.plane.so"
 	}
 
-	// Make sure we have a default project
-	// For testing, we just need a string. It will be evaluated by API.
-	// But actually we need a real project ID for "issue list"
-	// We'll set a dummy project ID, and if it fails, it means the API works but project is wrong.
-	// A better way is to pass a valid project ID, but user didn't give one.
-	// Actually, issue list requires a project ID. We will test search which is workspace-level.
-
 	config.Cfg.APIHost = apiHost
 	config.Cfg.DefaultWorkspace = workspace
+	config.Cfg.DefaultProject = projectID
 	config.Cfg.OutputFormat = "json"
 
-	// Mock Keyring for test by setting it directly if needed,
-	// but the API client in cmds uses config.GetAPIKey().
-	// For this test, we must inject the API key to the keyring, or modify API client to read from env.
-	// We will write it to a test keyring if possible, or assume it's in the environment.
-
-	// Wait, cmd commands will call api.NewClient() which reads from GetAPIKey().
-	// Since we made KeyringService a variable, we can change it for the test and inject the key.
 	originalService := config.KeyringService
 	config.KeyringService = "plane-cli-cmd-test"
 	t.Cleanup(func() { config.KeyringService = originalService; config.DeleteAPIKey() })
@@ -55,19 +50,154 @@ func setupTestEnvironment(t *testing.T) {
 	if err != nil {
 		t.Skipf("Keyring not available in test environment: %v", err)
 	}
+
+	client, err := api.NewClient()
+	require.NoError(t, err)
+	return client
+}
+
+func createTestIssue(t *testing.T, client *api.Client) *plane.Issue {
+	projectID := config.Cfg.DefaultProject
+	req := plane.CreateIssueRequest{
+		Name:        fmt.Sprintf("Test Issue %d", os.Getpid()),
+		Description: "Integration test issue",
+		Priority:    "low",
+	}
+
+	issue, err := client.CreateIssue(projectID, req)
+	require.NoError(t, err)
+	return issue
+}
+
+func cleanupTestIssue(t *testing.T, client *api.Client, issueID string) {
+	projectID := config.Cfg.DefaultProject
+	_ = client.DeleteIssue(projectID, issueID)
 }
 
 func TestIssueSearchIntegration(t *testing.T) {
 	setupTestEnvironment(t)
 
-	// Test 'plane issue search "Test"'
 	cmd := searchCmd
-
-	// Redirect output to buffer (optional, but good for testing)
 	buf := new(bytes.Buffer)
 	cmd.SetOut(buf)
 
-	// execute the function directly instead of cobra execution to avoid os.Exit
 	err := runSearch(cmd, []string{"Test"})
 	assert.NoError(t, err)
+}
+
+func TestIssueCreateWithAssigneeIntegration(t *testing.T) {
+	client := setupTestEnvironment(t)
+	projectID := config.Cfg.DefaultProject
+
+	assigneeUsername := os.Getenv("PLANE_TEST_ASSIGNEE")
+	if assigneeUsername == "" {
+		t.Skip("PLANE_TEST_ASSIGNEE not set, skipping assignee test")
+	}
+
+	req := plane.CreateIssueRequest{
+		Name:        fmt.Sprintf("Test Issue with Assignee %d", os.Getpid()),
+		Description: "Integration test for assignee on create",
+		Priority:    "medium",
+		Assignees:   []string{assigneeUsername},
+	}
+
+	issue, err := client.CreateIssue(projectID, req)
+	require.NoError(t, err)
+	require.NotNil(t, issue)
+	defer cleanupTestIssue(t, client, issue.ID)
+
+	assert.NotEmpty(t, issue.ID)
+	assert.Equal(t, req.Name, issue.Name)
+
+	fetchedIssue, err := client.GetIssue(projectID, issue.ID)
+	require.NoError(t, err)
+
+	assert.Len(t, fetchedIssue.Assignees, 1, "Expected one assignee")
+	if len(fetchedIssue.Assignees) > 0 {
+		assert.Equal(t, assigneeUsername, fetchedIssue.Assignees[0].Username)
+	}
+}
+
+func TestIssueEditWithAssigneeIntegration(t *testing.T) {
+	client := setupTestEnvironment(t)
+	projectID := config.Cfg.DefaultProject
+
+	assigneeUsername := os.Getenv("PLANE_TEST_ASSIGNEE")
+	if assigneeUsername == "" {
+		t.Skip("PLANE_TEST_ASSIGNEE not set, skipping assignee test")
+	}
+
+	issue := createTestIssue(t, client)
+	defer cleanupTestIssue(t, client, issue.ID)
+
+	updateReq := plane.UpdateIssueRequest{
+		Assignees: []string{assigneeUsername},
+	}
+
+	updatedIssue, err := client.UpdateIssue(projectID, issue.ID, updateReq)
+	require.NoError(t, err)
+	require.NotNil(t, updatedIssue)
+
+	fetchedIssue, err := client.GetIssue(projectID, issue.ID)
+	require.NoError(t, err)
+
+	assert.Len(t, fetchedIssue.Assignees, 1, "Expected one assignee after update")
+	if len(fetchedIssue.Assignees) > 0 {
+		assert.Equal(t, assigneeUsername, fetchedIssue.Assignees[0].Username)
+	}
+}
+
+func TestIssueEditReplaceAssigneeIntegration(t *testing.T) {
+	client := setupTestEnvironment(t)
+	projectID := config.Cfg.DefaultProject
+
+	assigneeUsername := os.Getenv("PLANE_TEST_ASSIGNEE")
+	if assigneeUsername == "" {
+		t.Skip("PLANE_TEST_ASSIGNEE not set, skipping assignee test")
+	}
+
+	issue := createTestIssue(t, client)
+	defer cleanupTestIssue(t, client, issue.ID)
+
+	updateReq := plane.UpdateIssueRequest{
+		Assignees: []string{assigneeUsername},
+	}
+	_, err := client.UpdateIssue(projectID, issue.ID, updateReq)
+	require.NoError(t, err)
+
+	clearReq := plane.UpdateIssueRequest{
+		Assignees: []string{},
+	}
+	_, err = client.UpdateIssue(projectID, issue.ID, clearReq)
+	require.NoError(t, err)
+
+	fetchedIssue, err := client.GetIssue(projectID, issue.ID)
+	require.NoError(t, err)
+
+	assert.Len(t, fetchedIssue.Assignees, 0, "Expected no assignees after clearing")
+}
+
+func TestIssueCreateWithLabelsIntegration(t *testing.T) {
+	client := setupTestEnvironment(t)
+	projectID := config.Cfg.DefaultProject
+
+	req := plane.CreateIssueRequest{
+		Name:        fmt.Sprintf("Test Issue with Labels %d", os.Getpid()),
+		Description: "Integration test for labels on create",
+		Priority:    "medium",
+		Labels:      []string{"bug", "test"},
+	}
+
+	issue, err := client.CreateIssue(projectID, req)
+	require.NoError(t, err)
+	require.NotNil(t, issue)
+	defer cleanupTestIssue(t, client, issue.ID)
+
+	assert.NotEmpty(t, issue.ID)
+	assert.Equal(t, req.Name, issue.Name)
+
+	fetchedIssue, err := client.GetIssue(projectID, issue.ID)
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, fetchedIssue.Labels, "Expected labels to be set")
 }
