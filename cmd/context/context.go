@@ -92,6 +92,7 @@ plane issue create [--title <text>] [--description <text>]
 plane issue edit <id:seq_id|uuid> [--title <text>] [--description <text>]
                  [--priority <enum:low|medium|high|urgent>]
                  [--state <enum:backlog|todo|in-progress|done>]
+                 [--assignee <@username:text>...] [--label <text>...]
 
 plane issue delete <id:seq_id|uuid>
 plane issue search <query:text>

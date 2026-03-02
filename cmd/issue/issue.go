@@ -125,6 +125,8 @@ func init() {
 	editCmd.Flags().StringVarP(&issueDescription, "description", "d", "", "New description")
 	editCmd.Flags().StringVar(&issuePriority, "priority", "", "New priority (low, medium, high, urgent)")
 	editCmd.Flags().StringVar(&issueState, "state", "", "New state (backlog, todo, in-progress, done)")
+	editCmd.Flags().StringSliceVarP(&issueAssignees, "assignee", "a", nil, "New assignee(s) (@username)")
+	editCmd.Flags().StringSliceVar(&issueLabels, "label", nil, "New label(s)")
 }
 
 func runList(cmd *cobra.Command, args []string) error {
@@ -300,8 +302,10 @@ func runEdit(cmd *cobra.Command, args []string) error {
 
 	req := plane.UpdateIssueRequest{}
 
+	hasFlags := issueTitle != "" || issueDescription != "" || issuePriority != "" || issueState != "" || len(issueAssignees) > 0 || len(issueLabels) > 0
+
 	// Interactive mode if no flags provided
-	if issueTitle == "" && issueDescription == "" && issuePriority == "" && issueState == "" {
+	if !hasFlags {
 		// Show current values and prompt for changes
 		output.Info(fmt.Sprintf("Editing issue %d: %s", issue.SequenceID, issue.Name))
 
@@ -335,6 +339,12 @@ func runEdit(cmd *cobra.Command, args []string) error {
 		}
 		if issueState != "" {
 			req.State = issueState
+		}
+		if len(issueAssignees) > 0 {
+			req.Assignees = issueAssignees
+		}
+		if len(issueLabels) > 0 {
+			req.Labels = issueLabels
 		}
 	}
 

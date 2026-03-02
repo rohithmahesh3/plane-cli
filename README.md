@@ -164,6 +164,7 @@ plane issue create -t "Feature request" -d "Description" -p medium -a @bob
 # Edit an issue
 plane issue edit 123 --state done
 plane issue edit 123 --priority urgent --assignee @alice
+plane issue edit 123 --assignee @bob --label bug,urgent
 
 # Delete an issue
 plane issue delete 123
