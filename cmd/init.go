@@ -125,11 +125,11 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get project details: %w", err)
 	}
 
-	// Fetch workspace members for default assignee selection
-	output.Info(fmt.Sprintf("Fetching workspace members from '%s'...", workspaceSlug))
-	members, err := client.GetWorkspaceMembers()
+	// Fetch project members for default assignee selection
+	output.Info("Fetching project members...")
+	members, err := client.GetProjectMembers(projectID)
 	if err != nil {
-		output.Warning(fmt.Sprintf("Failed to fetch workspace members: %v", err))
+		output.Warning(fmt.Sprintf("Failed to fetch project members: %v", err))
 		members = []plane.User{}
 	}
 

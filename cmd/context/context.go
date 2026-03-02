@@ -10,8 +10,8 @@ var (
 	includeAll       bool
 	includeCycle     bool
 	includeEpic      bool
-	includeProject   bool
 	includeWorkspace bool
+	includeIntake    bool
 )
 
 var ContextCmd = &cobra.Command{
@@ -20,8 +20,8 @@ var ContextCmd = &cobra.Command{
 	Long: `Output a concise CLI command reference in markdown format.
 Use flags to include additional modules beyond the default set.
 
-Default modules: issue, module, state, label, intake, type
-Optional modules: --cycle, --epic, --project, --workspace, --all`,
+Default modules: issue, project, module, state, label, type
+Optional modules: --cycle, --epic, --workspace, --intake, --all`,
 	RunE: runContext,
 }
 
@@ -29,8 +29,8 @@ func init() {
 	ContextCmd.Flags().BoolVarP(&includeAll, "all", "a", false, "Include all modules")
 	ContextCmd.Flags().BoolVar(&includeCycle, "cycle", false, "Include cycle commands")
 	ContextCmd.Flags().BoolVar(&includeEpic, "epic", false, "Include epic commands")
-	ContextCmd.Flags().BoolVar(&includeProject, "project", false, "Include project commands")
 	ContextCmd.Flags().BoolVar(&includeWorkspace, "workspace", false, "Include workspace commands")
+	ContextCmd.Flags().BoolVar(&includeIntake, "intake", false, "Include intake commands")
 }
 
 func runContext(cmd *cobra.Command, args []string) error {
@@ -38,10 +38,10 @@ func runContext(cmd *cobra.Command, args []string) error {
 
 	output += getGlobalFlags()
 	output += getIssueCommands()
+	output += getProjectCommands()
 	output += getModuleCommands()
 	output += getStateCommands()
 	output += getLabelCommands()
-	output += getIntakeCommands()
 	output += getTypeCommands()
 
 	if includeAll || includeCycle {
@@ -50,11 +50,11 @@ func runContext(cmd *cobra.Command, args []string) error {
 	if includeAll || includeEpic {
 		output += getEpicCommands()
 	}
-	if includeAll || includeProject {
-		output += getProjectCommands()
-	}
 	if includeAll || includeWorkspace {
 		output += getWorkspaceCommands()
+	}
+	if includeAll || includeIntake {
+		output += getIntakeCommands()
 	}
 
 	fmt.Print(output)
