@@ -125,10 +125,28 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get project details: %w", err)
 	}
 
+	// Fetch workspace members for default assignee selection
+	output.Info(fmt.Sprintf("Fetching workspace members from '%s'...", workspaceSlug))
+	members, err := client.GetWorkspaceMembers()
+	if err != nil {
+		output.Warning(fmt.Sprintf("Failed to fetch workspace members: %v", err))
+		members = []plane.User{}
+	}
+
+	// Prompt for default assignee
+	defaultAssigneeID, err := selectDefaultAssignee(members)
+	if err != nil {
+		return err
+	}
+
 	fmt.Println()
 	fmt.Println("  Preview settings:")
 	fmt.Printf("    Workspace: %s\n", workspaceSlug)
 	fmt.Printf("    Project: %s (%s)\n", project.Name, project.Identifier)
+	if defaultAssigneeID != "" {
+		assigneeName := getAssigneeDisplayName(members, defaultAssigneeID)
+		fmt.Printf("    Default Assignee: %s\n", assigneeName)
+	}
 	fmt.Println()
 
 	var confirm bool
@@ -144,7 +162,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	if err := createSettingsFile(workspaceSlug, projectID, settingsPath); err != nil {
+	if err := createSettingsFile(workspaceSlug, projectID, defaultAssigneeID, settingsPath); err != nil {
 		return err
 	}
 
@@ -326,15 +344,16 @@ func resolveProjectID(projectIDOrIdentifier string, projects []plane.Project) (s
 	return "", fmt.Errorf("project '%s' not found. Use 'plane project list' to see available projects", projectIDOrIdentifier)
 }
 
-func createSettingsFile(workspace, projectID, settingsPath string) error {
+func createSettingsFile(workspace, projectID, defaultAssignee, settingsPath string) error {
 	planeDir := filepath.Dir(settingsPath)
 	if err := os.MkdirAll(planeDir, 0755); err != nil {
 		return fmt.Errorf("failed to create .plane directory: %w", err)
 	}
 
 	settings := config.LocalConfig{
-		Workspace: workspace,
-		Project:   projectID,
+		Workspace:       workspace,
+		Project:         projectID,
+		DefaultAssignee: defaultAssignee,
 	}
 
 	var buf strings.Builder
@@ -416,4 +435,73 @@ func printSuccessMessage() {
 	fmt.Println("  plane issue list")
 	fmt.Println("  plane cycle list")
 	fmt.Println("  plane module list")
+}
+
+func selectDefaultAssignee(members []plane.User) (string, error) {
+	if len(members) == 0 {
+		return "", nil
+	}
+
+	// Build options list with "None" as first option
+	type option struct {
+		display string
+		id      string
+	}
+
+	options := []option{{
+		display: "(none - no default assignee)",
+		id:      "",
+	}}
+
+	for _, m := range members {
+		display := formatMemberDisplay(m)
+		options = append(options, option{
+			display: display,
+			id:      m.ID,
+		})
+	}
+
+	displays := make([]string, len(options))
+	for i, opt := range options {
+		displays[i] = opt.display
+	}
+
+	var selectedIdx int
+	if err := survey.AskOne(&survey.Select{
+		Message: "Select a default assignee for new issues:",
+		Options: displays,
+		Default: 0,
+	}, &selectedIdx); err != nil {
+		return "", err
+	}
+
+	return options[selectedIdx].id, nil
+}
+
+func formatMemberDisplay(m plane.User) string {
+	if m.DisplayName != "" {
+		if m.Email != "" {
+			return fmt.Sprintf("%s (@%s)", m.DisplayName, m.Email)
+		}
+		return m.DisplayName
+	}
+	if m.Email != "" {
+		return m.Email
+	}
+	return m.ID
+}
+
+func getAssigneeDisplayName(members []plane.User, assigneeID string) string {
+	for _, m := range members {
+		if m.ID == assigneeID {
+			if m.DisplayName != "" {
+				return m.DisplayName
+			}
+			if m.Email != "" {
+				return m.Email
+			}
+			return m.ID
+		}
+	}
+	return assigneeID
 }

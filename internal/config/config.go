@@ -25,13 +25,15 @@ type Config struct {
 	Version          string `mapstructure:"version"`
 	DefaultWorkspace string `mapstructure:"default_workspace"`
 	DefaultProject   string `mapstructure:"default_project"`
+	DefaultAssignee  string `mapstructure:"default_assignee"`
 	OutputFormat     string `mapstructure:"output_format"`
 	APIHost          string `mapstructure:"api_host"`
 }
 
 type LocalConfig struct {
-	Workspace string `yaml:"workspace"`
-	Project   string `yaml:"project"`
+	Workspace       string `yaml:"workspace"`
+	Project         string `yaml:"project"`
+	DefaultAssignee string `yaml:"default_assignee,omitempty"`
 }
 
 var (
@@ -101,6 +103,9 @@ func loadLocalConfig() {
 				}
 				if local.Project != "" {
 					Cfg.DefaultProject = local.Project
+				}
+				if local.DefaultAssignee != "" {
+					Cfg.DefaultAssignee = local.DefaultAssignee
 				}
 			}
 			return

@@ -271,7 +271,13 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	resolvedAssignees, err := client.ResolveAssignees(projectID, issueAssignees)
+	// Use default assignee from config if no assignees specified via flags
+	assignees := issueAssignees
+	if len(assignees) == 0 && config.Cfg.DefaultAssignee != "" {
+		assignees = []string{config.Cfg.DefaultAssignee}
+	}
+
+	resolvedAssignees, err := client.ResolveAssignees(projectID, assignees)
 	if err != nil {
 		return fmt.Errorf("failed to resolve assignees: %w", err)
 	}
