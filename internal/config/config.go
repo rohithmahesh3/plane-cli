@@ -12,9 +12,12 @@ import (
 const (
 	AppName        = "plane-cli"
 	ConfigFileName = "config"
+	DefaultAPIHost = "https://api.plane.so"
+)
+
+var (
 	KeyringService = "plane-cli"
 	KeyringUser    = "api-key"
-	DefaultAPIHost = "https://api.plane.so"
 )
 
 type Config struct {

@@ -31,8 +31,15 @@ jobs:
     - name: Build
       run: make build
 
-    - name: Test
+    - name: Test (Unit)
       run: go test -v ./...
+
+    - name: Test (Integration)
+      env:
+        PLANE_API_KEY: ${{ secrets.PLANE_API_KEY }}
+        PLANE_WORKSPACE: ${{ secrets.PLANE_WORKSPACE }}
+        PLANE_API_HOST: ${{ secrets.PLANE_API_HOST }}
+      run: go test -v -tags=integration ./...
 
     - name: Vet
       run: go vet ./...

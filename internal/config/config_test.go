@@ -64,6 +64,11 @@ func TestAPIKeyStorage(t *testing.T) {
 	// Note: This test uses the actual keyring
 	// In CI environments, this might fail without proper setup
 
+	// Use a test service to avoid overwriting user credentials
+	originalService := KeyringService
+	KeyringService = "plane-cli-test"
+	defer func() { KeyringService = originalService }()
+
 	testKey := "test-api-key-12345"
 
 	// Set API key

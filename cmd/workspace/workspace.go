@@ -20,17 +20,6 @@ Note: The Plane API does not support listing or retrieving workspace details.
 You can only switch between configured workspaces.`,
 }
 
-var listCmd = &cobra.Command{
-	Use:     "list",
-	Aliases: []string{"ls"},
-	Short:   "List workspaces",
-	Long: `List all workspaces you have access to.
-
-Note: The Plane API does not have a workspace listing endpoint.
-This command will show the currently configured workspace.`,
-	RunE: runList,
-}
-
 var infoCmd = &cobra.Command{
 	Use:   "info [slug]",
 	Short: "Show workspace details",
@@ -54,37 +43,8 @@ provide the workspace slug manually or configure it interactively.`,
 }
 
 func init() {
-	WorkspaceCmd.AddCommand(listCmd)
 	WorkspaceCmd.AddCommand(infoCmd)
 	WorkspaceCmd.AddCommand(switchCmd)
-}
-
-func runList(cmd *cobra.Command, args []string) error {
-	// The Plane API doesn't support listing workspaces
-	// Show the currently configured workspace instead
-	if config.Cfg.DefaultWorkspace == "" {
-		output.Warning("No workspace configured")
-		output.Info("Use 'plane workspace switch <slug>' to set a workspace")
-		return nil
-	}
-
-	fmt.Printf("Current workspace: %s\n", config.Cfg.DefaultWorkspace)
-	fmt.Printf("API Host: %s\n", config.Cfg.APIHost)
-
-	// Try to verify the workspace by listing projects
-	client, err := api.NewClient()
-	if err != nil {
-		return err
-	}
-
-	projects, err := client.ListProjects()
-	if err != nil {
-		output.Warning(fmt.Sprintf("Could not verify workspace: %v", err))
-		return nil
-	}
-
-	fmt.Printf("Accessible projects: %d\n", len(projects))
-	return nil
 }
 
 func runInfo(cmd *cobra.Command, args []string) error {

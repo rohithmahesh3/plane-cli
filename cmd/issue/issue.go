@@ -28,7 +28,6 @@ var (
 	issueState       string
 	issueAssignees   []string
 	issueLabels      []string
-	openInBrowser    bool
 )
 
 var IssueCmd = &cobra.Command{
@@ -113,9 +112,6 @@ func init() {
 	listCmd.Flags().StringVar(&moduleFilter, "module", "", "Filter by module name")
 	listCmd.Flags().IntVarP(&perPage, "limit", "l", 20, "Number of issues to show per page")
 	listCmd.Flags().BoolVarP(&allFlag, "all", "a", false, "Show all issues (fetch all pages)")
-
-	// View flags
-	viewCmd.Flags().BoolVarP(&openInBrowser, "web", "w", false, "Open issue in browser")
 
 	// Create flags
 	createCmd.Flags().StringVarP(&issueTitle, "title", "t", "", "Issue title")
@@ -223,12 +219,6 @@ func runView(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-	}
-
-	if openInBrowser {
-		// Open in browser (would need implementation)
-		output.Info("Opening in browser...")
-		return nil
 	}
 
 	formatter := output.NewFormatter(config.Cfg.OutputFormat, false)

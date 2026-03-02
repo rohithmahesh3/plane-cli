@@ -4,9 +4,11 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/rohithmahesh3/plane-cli/internal/config"
 	"github.com/rohithmahesh3/plane-cli/pkg/plane"
@@ -38,10 +40,6 @@ func setupIntegrationClient(t *testing.T) *Client {
 	// Set up config
 	config.Cfg.APIHost = apiHost
 	config.Cfg.DefaultWorkspace = workspace
-	err := config.SetAPIKey(apiKey)
-	if err != nil {
-		t.Logf("Warning: could not set API key in keyring: %v", err)
-	}
 
 	return &Client{
 		HTTPClient: &http.Client{Timeout: DefaultTimeout},
@@ -49,31 +47,6 @@ func setupIntegrationClient(t *testing.T) *Client {
 		APIKey:     apiKey,
 		Workspace:  workspace,
 	}
-}
-
-func TestIntegration_ListWorkspaces(t *testing.T) {
-	client := setupIntegrationClient(t)
-
-	workspaces, err := client.ListWorkspaces()
-	require.NoError(t, err)
-	assert.NotEmpty(t, workspaces)
-
-	t.Logf("Found %d workspaces:", len(workspaces))
-	for _, ws := range workspaces {
-		t.Logf("  - %s (%s): %s", ws.Name, ws.Slug, ws.ID)
-	}
-}
-
-func TestIntegration_GetWorkspace(t *testing.T) {
-	client := setupIntegrationClient(t)
-
-	workspace, err := client.GetWorkspace(client.Workspace)
-	require.NoError(t, err)
-	assert.Equal(t, client.Workspace, workspace.Slug)
-	assert.NotEmpty(t, workspace.ID)
-	assert.NotEmpty(t, workspace.Name)
-
-	t.Logf("Workspace: %s (%s)", workspace.Name, workspace.Slug)
 }
 
 func TestIntegration_ListProjects(t *testing.T) {
@@ -92,9 +65,11 @@ func TestIntegration_ProjectLifecycle(t *testing.T) {
 	client := setupIntegrationClient(t)
 
 	// Create a test project
+	// Use timestamp to avoid name collisions
+	timestamp := time.Now().Unix()
 	createReq := plane.CreateProjectRequest{
-		Name:        "CLI Test Project",
-		Identifier:  "CLITEST",
+		Name:        fmt.Sprintf("CLI Test Project %d", timestamp),
+		Identifier:  fmt.Sprintf("CT%d", timestamp%10000),
 		Description: "Test project created by CLI integration tests",
 	}
 
