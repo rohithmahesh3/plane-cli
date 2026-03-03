@@ -209,11 +209,11 @@ For complete command documentation including modules, states, labels, cycles, an
 # Default modules (issue, project, module, state, label, type)
 plane-cli context
 
-# All modules including optional (cycle, epic, workspace, intake)
+# All modules including optional (cycle, workspace, intake)
 plane-cli context --all
 
 # Specific optional modules
-plane-cli context --workspace --cycle --epic --intake --project
+plane-cli context --workspace --cycle --intake --project
 `+"```"+`
 
 ### Available Context Options
@@ -221,7 +221,6 @@ plane-cli context --workspace --cycle --epic --intake --project
 - `+"`"+`--all`+"`"+` - Include all modules
 - `+"`"+`--workspace`+"`"+` - Include workspace commands
 - `+"`"+`--cycle`+"`"+` - Include cycle/sprint commands
-- `+"`"+`--epic`+"`"+` - Include epic commands
 - `+"`"+`--intake`+"`"+` - Include intake commands
 - `+"`"+`--project`+"`"+` - Include project commands
 

@@ -414,16 +414,6 @@ plane-cli label edit LABEL_ID --color "#3B82F6"
 plane-cli label delete LABEL_ID
 ```
 
-### Epics
-
-```bash
-# List epics
-plane-cli epic list
-
-# View epic details
-plane-cli epic view EPIC_ID
-```
-
 ### Intake (Inbox)
 
 ```bash
@@ -463,7 +453,6 @@ plane-cli context
 
 # Include additional modules
 plane-cli context --cycle
-plane-cli context --epic
 plane-cli context --project
 plane-cli context --workspace
 
@@ -532,7 +521,6 @@ Supported features:
 - ✅ Pages/Documentation (create, view)
 - ✅ States/Workflow (list, create, edit, delete)
 - ✅ Labels (list, create, edit, delete)
-- ✅ Epics (list, view)
 - ✅ Intake/Inbox (list, create, view, delete)
 - ✅ Issue Types (list, create, delete)
 - ✅ AI Context Generation
@@ -596,7 +584,6 @@ plane-cli/
 │   ├── config/         # Config commands
 │   ├── context/        # AI context generation
 │   ├── cycle/          # Cycle/sprint commands
-│   ├── epic/           # Epic commands
 │   ├── intake/         # Intake/inbox commands
 │   ├── issue/          # Issue commands + subcommands
 │   │   ├── activity.go # Activity history

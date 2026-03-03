@@ -9,7 +9,6 @@ import (
 	"github.com/rohithmahesh3/plane-cli/cmd/config"
 	"github.com/rohithmahesh3/plane-cli/cmd/context"
 	"github.com/rohithmahesh3/plane-cli/cmd/cycle"
-	"github.com/rohithmahesh3/plane-cli/cmd/epic"
 	"github.com/rohithmahesh3/plane-cli/cmd/inject"
 	"github.com/rohithmahesh3/plane-cli/cmd/intake"
 	"github.com/rohithmahesh3/plane-cli/cmd/issue"
@@ -100,7 +99,6 @@ func init() {
 	rootCmd.AddCommand(label.LabelCmd)
 	rootCmd.AddCommand(cycle.CycleCmd)
 	rootCmd.AddCommand(module.ModuleCmd)
-	rootCmd.AddCommand(epic.EpicCmd)
 	rootCmd.AddCommand(intake.IntakeCmd)
 	rootCmd.AddCommand(config.ConfigCmd)
 	rootCmd.AddCommand(context.ContextCmd)

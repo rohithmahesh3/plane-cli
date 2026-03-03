@@ -323,30 +323,6 @@ func (u UploadCredentials) UploadTarget() UploadData {
 	}
 }
 
-type Epic struct {
-	ID                  string    `json:"id"`
-	Name                string    `json:"name"`
-	DescriptionHTML     string    `json:"description_html,omitempty"`
-	DescriptionStripped string    `json:"description_stripped,omitempty"`
-	State               string    `json:"state,omitempty"`
-	Priority            string    `json:"priority,omitempty"`
-	Assignees           []string  `json:"assignees,omitempty"`
-	Labels              []string  `json:"labels,omitempty"`
-	StartDate           string    `json:"start_date,omitempty"`
-	TargetDate          string    `json:"target_date,omitempty"`
-	SequenceID          int       `json:"sequence_id,omitempty"`
-	SortOrder           float64   `json:"sort_order,omitempty"`
-	IsDraft             bool      `json:"is_draft,omitempty"`
-	CompletedAt         string    `json:"completed_at,omitempty"`
-	ArchivedAt          string    `json:"archived_at,omitempty"`
-	Project             string    `json:"project,omitempty"`
-	Workspace           string    `json:"workspace,omitempty"`
-	CreatedBy           string    `json:"created_by,omitempty"`
-	UpdatedBy           string    `json:"updated_by,omitempty"`
-	CreatedAt           time.Time `json:"created_at,omitempty"`
-	UpdatedAt           time.Time `json:"updated_at,omitempty"`
-}
-
 type IntakeIssue struct {
 	ID          string    `json:"id"`
 	Status      int       `json:"status"`
