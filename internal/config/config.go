@@ -43,6 +43,14 @@ var (
 )
 
 func InitConfig() error {
+	return initConfig(true)
+}
+
+func InitConfigAllowInvalidOutput() error {
+	return initConfig(false)
+}
+
+func initConfig(validateOutput bool) error {
 	viper.Reset()
 
 	if cfgFile != "" {
@@ -85,9 +93,12 @@ func InitConfig() error {
 		return fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 	if err := output.ValidateFormat(Cfg.OutputFormat); err != nil {
-		return err
+		if validateOutput {
+			return err
+		}
+	} else {
+		Cfg.OutputFormat = output.NormalizeFormat(Cfg.OutputFormat)
 	}
-	Cfg.OutputFormat = output.NormalizeFormat(Cfg.OutputFormat)
 
 	loadLocalConfig()
 

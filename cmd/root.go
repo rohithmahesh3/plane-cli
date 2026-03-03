@@ -60,7 +60,12 @@ Get started:
 			cfg.SetConfigFile(configFile)
 		}
 
-		if err := cfg.InitConfig(); err != nil {
+		initConfig := cfg.InitConfig
+		if shouldAllowInvalidOutputConfig(cmd, args) {
+			initConfig = cfg.InitConfigAllowInvalidOutput
+		}
+
+		if err := initConfig(); err != nil {
 			return fmt.Errorf("failed to initialize config: %w", err)
 		}
 
@@ -81,6 +86,10 @@ Get started:
 
 		return nil
 	},
+}
+
+func shouldAllowInvalidOutputConfig(cmd *cobra.Command, args []string) bool {
+	return cmd.CommandPath() == "plane-cli config set" && len(args) >= 1 && args[0] == "output"
 }
 
 func Execute() error {
