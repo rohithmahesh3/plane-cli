@@ -149,7 +149,7 @@ plane-cli project members PROJECT_ID
 plane-cli issue list
 
 # List with filters
-plane-cli issue list --state backlog
+plane-cli issue list --state <state-id>
 plane-cli issue list --assignee <assignee-id>
 
 # View issue details (supports sequence ID or UUID)
@@ -161,7 +161,7 @@ plane-cli issue create --title "Bug fix" --priority high
 plane-cli issue create -t "Feature request" -d "Description" -p medium -a <assignee-id>
 
 # Edit an issue
-plane-cli issue edit 123 --state done
+plane-cli issue edit 123 --state <state-id>
 plane-cli issue edit 123 --priority urgent --assignee <assignee-id>
 plane-cli issue edit 123 --assignee <assignee-id> --label bug,urgent
 
@@ -295,10 +295,10 @@ plane-cli module list --archived
 plane-cli module view MODULE_ID
 
 # Create a module
-plane-cli module create --name "Authentication" --description "Auth features" --status in-progress
+plane-cli module create --name "Authentication" --description "Auth features" --status <status-id>
 
 # Edit a module
-plane-cli module edit MODULE_ID --status completed
+plane-cli module edit MODULE_ID --status <status-id>
 
 # Delete a module
 plane-cli module delete MODULE_ID

@@ -39,7 +39,7 @@ var listCmd = &cobra.Command{
 
 Examples:
   plane-cli issue list
-  plane-cli issue list --state backlog
+  plane-cli issue list --state <state-id>
   plane-cli issue list --assignee <assignee-id>`,
 	RunE: runList,
 }
