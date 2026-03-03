@@ -53,19 +53,35 @@ You'll need an API key from Plane:
 3. Create a new token
 4. Use it when prompted
 
-### 2. Check Workspace Access
+### 2. Initialize Project
+
+```bash
+plane-cli init
+```
+
+This creates a `.plane/settings.yaml` file in your current directory with workspace and project settings.
+
+### 3. Inject Context into Agent Files (Optional)
+
+```bash
+plane-cli inject
+```
+
+This injects CLI command documentation into agent files (AGENTS.md, GEMINI.md, CLAUDE.md, CURSOR.md) for AI assistants.
+
+### 4. Check Workspace Access
 
 ```bash
 plane-cli workspace info
 ```
 
-### 3. List Projects
+### 5. List Projects
 
 ```bash
 plane-cli project list
 ```
 
-### 4. List Issues
+### 6. List Issues
 
 ```bash
 plane-cli issue list
@@ -105,6 +121,38 @@ plane-cli auth status
 
 # Logout
 plane-cli auth logout
+```
+
+### Project Initialization
+
+```bash
+# Initialize project settings interactively
+plane-cli init
+
+# Initialize with specific workspace and project
+plane-cli init --workspace my-workspace --project PROJECT_ID
+
+# Create a new project during init
+plane-cli init --workspace my-workspace --create-project --project-name "My New Project"
+
+# Update existing settings
+plane-cli init --upgrade
+```
+
+### Context Injection
+
+```bash
+# Inject context into all agent files
+plane-cli inject
+
+# Inject into specific file
+plane-cli inject --file AGENTS.md
+
+# Preview changes without modifying files
+plane-cli inject --dry-run
+
+# Force update even if unchanged
+plane-cli inject --force
 ```
 
 ### Workspaces
