@@ -60,8 +60,9 @@ Get started:
 			cfg.SetConfigFile(configFile)
 		}
 
+		allowInvalidOutputConfig := shouldAllowInvalidOutputConfig(cmd, args)
 		initConfig := cfg.InitConfig
-		if shouldAllowInvalidOutputConfig(cmd, args) {
+		if allowInvalidOutputConfig {
 			initConfig = cfg.InitConfigAllowInvalidOutput
 		}
 
@@ -79,10 +80,12 @@ Get started:
 		if outputFmt != "" {
 			cfg.Cfg.OutputFormat = outputFmt
 		}
-		if err := output.ValidateFormat(cfg.Cfg.OutputFormat); err != nil {
-			return err
+		if !allowInvalidOutputConfig {
+			if err := output.ValidateFormat(cfg.Cfg.OutputFormat); err != nil {
+				return err
+			}
+			cfg.Cfg.OutputFormat = output.NormalizeFormat(cfg.Cfg.OutputFormat)
 		}
-		cfg.Cfg.OutputFormat = output.NormalizeFormat(cfg.Cfg.OutputFormat)
 
 		return nil
 	},
