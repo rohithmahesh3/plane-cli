@@ -10,6 +10,7 @@ import (
 	"github.com/rohithmahesh3/plane-cli/cmd/context"
 	"github.com/rohithmahesh3/plane-cli/cmd/cycle"
 	"github.com/rohithmahesh3/plane-cli/cmd/epic"
+	"github.com/rohithmahesh3/plane-cli/cmd/inject"
 	"github.com/rohithmahesh3/plane-cli/cmd/intake"
 	"github.com/rohithmahesh3/plane-cli/cmd/issue"
 	"github.com/rohithmahesh3/plane-cli/cmd/label"
@@ -104,6 +105,7 @@ func init() {
 	rootCmd.AddCommand(config.ConfigCmd)
 	rootCmd.AddCommand(context.ContextCmd)
 	rootCmd.AddCommand(issuetype.TypeCmd)
+	rootCmd.AddCommand(inject.InjectCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(completionCmd)
 }

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/rohithmahesh3/plane-cli/cmd/inject"
 	"github.com/rohithmahesh3/plane-cli/internal/api"
 	"github.com/rohithmahesh3/plane-cli/internal/config"
 	"github.com/rohithmahesh3/plane-cli/internal/output"
@@ -175,6 +176,14 @@ func runInit(cmd *cobra.Command, args []string) error {
 		if err := handleGitignore(); err != nil {
 			output.Warning(fmt.Sprintf("Failed to update .gitignore: %v", err))
 		}
+	}
+
+	// Inject context into agent files
+	agentFiles := inject.GetDefaultAgentFiles()
+	if err := inject.InjectIntoFiles(agentFiles); err != nil {
+		output.Warning(fmt.Sprintf("Failed to inject context into agent files: %v", err))
+	} else {
+		output.Success("Updated agent files with plane-cli context")
 	}
 
 	printSuccessMessage()
