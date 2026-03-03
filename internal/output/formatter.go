@@ -44,17 +44,27 @@ func (f *Formatter) Print(data interface{}) error {
 }
 
 func (f *Formatter) printJSON(data interface{}) error {
+	normalized, err := normalizeStructuredOutput(data)
+	if err != nil {
+		return err
+	}
+
 	encoder := json.NewEncoder(os.Stdout)
 	encoder.SetIndent("", "  ")
-	return encoder.Encode(data)
+	return encoder.Encode(normalized)
 }
 
 func (f *Formatter) printYAML(data interface{}) error {
+	normalized, err := normalizeStructuredOutput(data)
+	if err != nil {
+		return err
+	}
+
 	encoder := yaml.NewEncoder(os.Stdout)
 	defer func() {
 		_ = encoder.Close()
 	}()
-	return encoder.Encode(data)
+	return encoder.Encode(normalized)
 }
 
 func (f *Formatter) printTable(data interface{}) error {
@@ -74,7 +84,8 @@ func (f *Formatter) printSliceTable(val reflect.Value) error {
 	}
 
 	elem := val.Index(0)
-	headers := f.getHeaders(elem)
+	fields := tableFields(elem)
+	headers := f.getHeaders(fields)
 
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader(headers)
@@ -91,7 +102,7 @@ func (f *Formatter) printSliceTable(val reflect.Value) error {
 	table.SetNoWhiteSpace(true)
 
 	for i := 0; i < val.Len(); i++ {
-		row := f.getRow(val.Index(i))
+		row := f.getRow(tableFields(val.Index(i)))
 		table.Append(row)
 	}
 
@@ -100,7 +111,8 @@ func (f *Formatter) printSliceTable(val reflect.Value) error {
 }
 
 func (f *Formatter) printStructTable(val reflect.Value) error {
-	headers := f.getHeaders(val)
+	fields := tableFields(val)
+	headers := f.getHeaders(fields)
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader(headers)
 	table.SetAutoWrapText(false)
@@ -115,65 +127,39 @@ func (f *Formatter) printStructTable(val reflect.Value) error {
 	table.SetTablePadding("\t")
 	table.SetNoWhiteSpace(true)
 
-	row := f.getRow(val)
+	row := f.getRow(fields)
 	table.Append(row)
 	table.Render()
 
 	return nil
 }
 
-func (f *Formatter) getHeaders(val reflect.Value) []string {
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
-
+func (f *Formatter) getHeaders(fields []tableField) []string {
 	var headers []string
-	t := val.Type()
-
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		tag := field.Tag.Get("table")
-
-		if tag == "-" {
-			continue
-		}
-
-		if tag != "" {
-			headers = append(headers, tag)
-		} else {
-			headers = append(headers, strings.ToUpper(field.Name[:1])+field.Name[1:])
-		}
+	for _, field := range fields {
+		headers = append(headers, strings.ToUpper(field.header[:1])+field.header[1:])
 	}
 
 	return headers
 }
 
-func (f *Formatter) getRow(val reflect.Value) []string {
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
-
+func (f *Formatter) getRow(fields []tableField) []string {
 	var row []string
 
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Type().Field(i)
-		tag := field.Tag.Get("table")
-
-		if tag == "-" {
-			continue
-		}
-
-		fieldVal := val.Field(i)
-		row = append(row, f.formatValue(fieldVal))
+	for _, field := range fields {
+		row = append(row, f.formatValue(field.fieldVal, field.isHTML))
 	}
 
 	return row
 }
 
-func (f *Formatter) formatValue(val reflect.Value) string {
+func (f *Formatter) formatValue(val reflect.Value, isHTML bool) string {
 	switch val.Kind() {
 	case reflect.String:
 		s := val.String()
+		if isHTML {
+			s = convertHTMLValue(s)
+		}
 		if len(s) > 50 && !f.Wide {
 			return s[:47] + "..."
 		}
@@ -195,7 +181,7 @@ func (f *Formatter) formatValue(val reflect.Value) string {
 		}
 		var parts []string
 		for i := 0; i < val.Len() && i < 3; i++ {
-			parts = append(parts, f.formatValue(val.Index(i)))
+			parts = append(parts, f.formatValue(val.Index(i), false))
 		}
 		if val.Len() > 3 {
 			parts = append(parts, fmt.Sprintf("+%d more", val.Len()-3))
@@ -205,7 +191,7 @@ func (f *Formatter) formatValue(val reflect.Value) string {
 		if val.IsNil() {
 			return "-"
 		}
-		return f.formatValue(val.Elem())
+		return f.formatValue(val.Elem(), isHTML)
 	default:
 		return fmt.Sprintf("%v", val.Interface())
 	}

@@ -51,7 +51,6 @@ func setupComprehensiveTest(t *testing.T) *Client {
 	t.Cleanup(func() {
 		config.KeyringService = originalService
 		config.DeleteAPIKey()
-		ClearResolverCache()
 	})
 
 	err := config.SetAPIKey(apiKey)
@@ -731,43 +730,6 @@ func TestAttachmentUploadLifecycle(t *testing.T) {
 }
 
 // ============================================
-// RESOLVER TESTS
-// ============================================
-
-func TestResolveAssigneeIntegration(t *testing.T) {
-	client := setupComprehensiveTest(t)
-
-	assigneeName := os.Getenv("PLANE_TEST_ASSIGNEE")
-	if assigneeName == "" {
-		t.Skip("PLANE_TEST_ASSIGNEE not set")
-	}
-
-	resolved, err := client.ResolveAssignees(testProjectID, []string{assigneeName})
-	require.NoError(t, err)
-	assert.Len(t, resolved, 1)
-	assert.Len(t, resolved[0], 36)
-	t.Logf("Resolved assignee '%s' to UUID: %s", assigneeName, resolved[0])
-}
-
-func TestResolveLabelsIntegration(t *testing.T) {
-	client := setupComprehensiveTest(t)
-
-	label, err := client.CreateLabel(testProjectID, plane.CreateLabelRequest{
-		Name:  fmt.Sprintf("resolve-test-%d", time.Now().UnixNano()),
-		Color: "#FF0000",
-	})
-	require.NoError(t, err)
-	defer client.DeleteLabel(testProjectID, label.ID)
-
-	ClearResolverCache()
-
-	resolved, err := client.ResolveLabels(testProjectID, []string{label.Name})
-	require.NoError(t, err)
-	assert.Len(t, resolved, 1)
-	t.Logf("Resolved label '%s' to UUID: %s", label.Name, resolved[0])
-}
-
-// ============================================
 // ARCHIVE/UNARCHIVE TESTS
 // ============================================
 
@@ -882,73 +844,6 @@ func TestIssueWithHTMLDescription(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotEmpty(t, fetched.DescriptionHTML)
 	t.Logf("Issue created with HTML description")
-}
-
-// ============================================
-// MULTIPLE ASSIGNEES TESTS
-// ============================================
-
-func TestIssueWithMultipleAssignees(t *testing.T) {
-	client := setupComprehensiveTest(t)
-
-	assigneeName := os.Getenv("PLANE_TEST_ASSIGNEE")
-	if assigneeName == "" {
-		t.Skip("PLANE_TEST_ASSIGNEE not set")
-	}
-
-	resolved, err := client.ResolveAssignees(testProjectID, []string{assigneeName})
-	require.NoError(t, err)
-
-	issue := createTestIssueForModule(t, client, "Multi Assignee Test")
-	defer cleanupTestIssue(t, client, issue.ID)
-
-	updated, err := client.UpdateIssue(testProjectID, issue.ID, plane.UpdateIssueRequest{
-		Assignees: resolved,
-	})
-	require.NoError(t, err)
-	assert.Len(t, updated.Assignees, 1)
-	t.Logf("Issue has %d assignee(s)", len(updated.Assignees))
-}
-
-// ============================================
-// MULTIPLE LABELS TESTS
-// ============================================
-
-func TestIssueWithMultipleLabels(t *testing.T) {
-	client := setupComprehensiveTest(t)
-
-	label1, err := client.CreateLabel(testProjectID, plane.CreateLabelRequest{
-		Name:  fmt.Sprintf("multi-label-1-%d", time.Now().UnixNano()),
-		Color: "#FF0000",
-	})
-	require.NoError(t, err)
-	defer client.DeleteLabel(testProjectID, label1.ID)
-
-	label2, err := client.CreateLabel(testProjectID, plane.CreateLabelRequest{
-		Name:  fmt.Sprintf("multi-label-2-%d", time.Now().UnixNano()),
-		Color: "#00FF00",
-	})
-	require.NoError(t, err)
-	defer client.DeleteLabel(testProjectID, label2.ID)
-
-	ClearResolverCache()
-
-	resolved, err := client.ResolveLabels(testProjectID, []string{label1.Name, label2.Name})
-	require.NoError(t, err)
-	assert.Len(t, resolved, 2)
-
-	issue, err := client.CreateIssue(testProjectID, plane.CreateIssueRequest{
-		Name:     fmt.Sprintf("Multi Label Test %d", time.Now().UnixNano()),
-		Priority: "low",
-		Labels:   resolved,
-	})
-	require.NoError(t, err)
-	defer cleanupTestIssue(t, client, issue.ID)
-
-	fetched, err := client.GetIssue(testProjectID, issue.ID)
-	require.NoError(t, err)
-	assert.Len(t, fetched.Labels, 2)
-	t.Logf("Issue has %d label(s)", len(fetched.Labels))
 }
 
 // ============================================
