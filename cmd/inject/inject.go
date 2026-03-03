@@ -232,6 +232,23 @@ plane-cli context --workspace --cycle --epic --intake --project
 - Use `+"`"+`plane-cli state list`+"`"+` to get state IDs
 - Use `+"`"+`plane-cli label list`+"`"+` to get label IDs
 
+### Tips for Multiline Descriptions
+
+For issues with formatted descriptions, use a heredoc to avoid shell escaping issues:
+
+`+"```"+`bash
+plane-cli issue create --title "My issue" --description "$(cat <<'EOF'
+## Objective
+
+Detailed description here...
+
+## Requirements
+- Item 1
+- Item 2
+EOF
+)"
+`+"```"+`
+
 %s
 `, markerStart, timestamp, markerEnd)
 }
