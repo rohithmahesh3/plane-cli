@@ -45,3 +45,7 @@ config.yaml
 # Temporary files
 *.tmp
 *.temp
+
+
+# Plane CLI
+.plane/
