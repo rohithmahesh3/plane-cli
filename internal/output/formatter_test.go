@@ -1,7 +1,8 @@
 package output
 
 import (
-	"reflect"
+	"io"
+	"os"
 	"testing"
 
 	"github.com/rohithmahesh3/plane-cli/pkg/plane"
@@ -56,28 +57,55 @@ func TestHTMLToMarkdownConvertsTables(t *testing.T) {
 	assert.Contains(t, markdown, "| 1 | 2 |")
 }
 
-func TestTableFieldsRenameHTMLHeaders(t *testing.T) {
-	val := reflect.ValueOf(struct {
-		DescriptionHTML string `json:"description_html"`
-	}{
-		DescriptionHTML: "<p>Hello</p>",
-	})
+func TestFormatterPrintDefaultsToYAML(t *testing.T) {
+	formatter := NewFormatter("", false)
 
-	fields := tableFields(val)
-	require.Len(t, fields, 1)
-	assert.Equal(t, "DescriptionMarkdown", fields[0].header)
-	assert.True(t, fields[0].isHTML)
+	output, err := captureStdout(t, func() error {
+		return formatter.Print(plane.Issue{
+			Name:            "Probe",
+			DescriptionHTML: "<p>Hello <strong>world</strong></p>",
+		})
+	})
+	require.NoError(t, err)
+
+	assert.Contains(t, output, "name: Probe")
+	assert.Contains(t, output, "description_markdown: Hello **world**")
+	assert.NotContains(t, output, "description_html")
 }
 
-func TestFormatterGetRowConvertsHTMLValues(t *testing.T) {
+func TestFormatterPrintRejectsTable(t *testing.T) {
 	formatter := NewFormatter("table", false)
-	val := reflect.ValueOf(struct {
-		DescriptionHTML string `json:"description_html"`
-	}{
-		DescriptionHTML: "<p>Hello <strong>world</strong></p>",
-	})
 
-	row := formatter.getRow(tableFields(val))
-	require.Len(t, row, 1)
-	assert.Equal(t, "Hello **world**", row[0])
+	err := formatter.Print(plane.Issue{Name: "Probe"})
+	require.Error(t, err)
+	assert.EqualError(t, err, `invalid output format "table": table output has been removed; supported formats are json, yaml`)
+}
+
+func TestValidateFormat(t *testing.T) {
+	require.NoError(t, ValidateFormat(""))
+	require.NoError(t, ValidateFormat("json"))
+	require.NoError(t, ValidateFormat("yaml"))
+
+	err := ValidateFormat("bogus")
+	require.Error(t, err)
+	assert.EqualError(t, err, `invalid output format "bogus": supported formats are json, yaml`)
+}
+
+func captureStdout(t *testing.T, fn func() error) (string, error) {
+	t.Helper()
+
+	originalStdout := os.Stdout
+	reader, writer, err := os.Pipe()
+	require.NoError(t, err)
+
+	os.Stdout = writer
+	runErr := fn()
+	require.NoError(t, writer.Close())
+	os.Stdout = originalStdout
+
+	out, readErr := io.ReadAll(reader)
+	require.NoError(t, readErr)
+	require.NoError(t, reader.Close())
+
+	return string(out), runErr
 }

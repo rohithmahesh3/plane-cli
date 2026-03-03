@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/rohithmahesh3/plane-cli/internal/output"
 	"github.com/spf13/viper"
 	"github.com/zalando/go-keyring"
 	"gopkg.in/yaml.v3"
@@ -42,6 +43,8 @@ var (
 )
 
 func InitConfig() error {
+	viper.Reset()
+
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	} else {
@@ -61,7 +64,7 @@ func InitConfig() error {
 	}
 
 	viper.SetDefault("version", "1.0")
-	viper.SetDefault("output_format", "table")
+	viper.SetDefault("output_format", output.DefaultFormat)
 	viper.SetDefault("api_host", DefaultAPIHost)
 
 	if err := viper.ReadInConfig(); err != nil {
@@ -81,6 +84,10 @@ func InitConfig() error {
 	if err := viper.Unmarshal(&Cfg); err != nil {
 		return fmt.Errorf("failed to unmarshal config: %w", err)
 	}
+	if err := output.ValidateFormat(Cfg.OutputFormat); err != nil {
+		return err
+	}
+	Cfg.OutputFormat = output.NormalizeFormat(Cfg.OutputFormat)
 
 	loadLocalConfig()
 

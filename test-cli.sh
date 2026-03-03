@@ -43,7 +43,7 @@ echo ""
 echo -e "${YELLOW}Test 3: Initialize config${NC}"
 mkdir -p ~/.config/plane-cli
 echo "version: \"1.0\"" > ~/.config/plane-cli/config.yaml
-echo "output_format: table" >> ~/.config/plane-cli/config.yaml
+echo "output_format: yaml" >> ~/.config/plane-cli/config.yaml
 echo "api_host: http://plane.tequerist.com" >> ~/.config/plane-cli/config.yaml
 echo "default_workspace: test-workspace" >> ~/.config/plane-cli/config.yaml
 echo -e "${GREEN}✓ Config initialized${NC}"

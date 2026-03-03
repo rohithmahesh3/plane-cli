@@ -61,7 +61,7 @@ func getGlobalFlags() string {
 ` + "```" + `
 --workspace <slug:text>     Workspace slug (overrides config)
 --project <id:text>         Project ID (overrides config)
---output <format>           Output format: json | table | yaml
+--output <format>           Output format: json | yaml
 --no-color                  Disable colored output
 --config <path:text>        Config file path
 ` + "```" + `

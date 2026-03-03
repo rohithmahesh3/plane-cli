@@ -25,7 +25,7 @@ func TestInitConfig(t *testing.T) {
 
 	// Check defaults
 	assert.Equal(t, "1.0", Cfg.Version)
-	assert.Equal(t, "table", Cfg.OutputFormat)
+	assert.Equal(t, "yaml", Cfg.OutputFormat)
 	assert.Equal(t, DefaultAPIHost, Cfg.APIHost)
 }
 
@@ -97,6 +97,23 @@ func TestAPIKeyStorage(t *testing.T) {
 	// Verify deletion
 	_, err = GetAPIKey()
 	assert.Error(t, err) // Should return error when key is deleted
+}
+
+func TestInitConfigRejectsTableOutputFormat(t *testing.T) {
+	tempDir := t.TempDir()
+	configDir := filepath.Join(tempDir, ".config", AppName)
+	err := os.MkdirAll(configDir, 0755)
+	require.NoError(t, err)
+
+	configPath := filepath.Join(configDir, ConfigFileName+".yaml")
+	err = os.WriteFile(configPath, []byte("output_format: table\n"), 0644)
+	require.NoError(t, err)
+
+	SetConfigFile(configPath)
+
+	err = InitConfig()
+	require.Error(t, err)
+	assert.EqualError(t, err, `invalid output format "table": table output has been removed; supported formats are json, yaml`)
 }
 
 func TestLocalConfig(t *testing.T) {

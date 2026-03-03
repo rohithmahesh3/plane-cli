@@ -95,7 +95,7 @@ Configuration is stored in `~/.config/plane-cli/config.yaml`:
 version: "1.0"
 default_workspace: my-workspace
 default_project: my-project-id
-output_format: table
+output_format: yaml
 api_host: https://api.plane.so
 ```
 
@@ -601,7 +601,7 @@ plane-cli/
 ├── internal/
 │   ├── api/            # API client and endpoints
 │   ├── config/         # Configuration management
-│   └── output/         # Output formatting (table/json/yaml)
+│   └── output/         # Output formatting (json/yaml)
 ├── pkg/plane/          # Plane API types and models
 ├── main.go
 ├── go.mod

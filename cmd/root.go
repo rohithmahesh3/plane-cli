@@ -19,6 +19,7 @@ import (
 	issuetype "github.com/rohithmahesh3/plane-cli/cmd/type"
 	"github.com/rohithmahesh3/plane-cli/cmd/workspace"
 	cfg "github.com/rohithmahesh3/plane-cli/internal/config"
+	"github.com/rohithmahesh3/plane-cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -73,6 +74,10 @@ Get started:
 		if outputFmt != "" {
 			cfg.Cfg.OutputFormat = outputFmt
 		}
+		if err := output.ValidateFormat(cfg.Cfg.OutputFormat); err != nil {
+			return err
+		}
+		cfg.Cfg.OutputFormat = output.NormalizeFormat(cfg.Cfg.OutputFormat)
 
 		return nil
 	},
@@ -85,7 +90,7 @@ func Execute() error {
 func init() {
 	rootCmd.PersistentFlags().StringVar(&workspaceSlug, "workspace", "", "Plane workspace slug (overrides config)")
 	rootCmd.PersistentFlags().StringVar(&projectID, "project", "", "Plane project ID (overrides config)")
-	rootCmd.PersistentFlags().StringVarP(&outputFmt, "output", "o", "", "Output format: table, json, yaml (overrides config)")
+	rootCmd.PersistentFlags().StringVarP(&outputFmt, "output", "o", "", "Output format: json, yaml (overrides config)")
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
 	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "Config file path (default: ~/.config/plane-cli/config.yaml)")
 

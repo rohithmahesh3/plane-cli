@@ -73,6 +73,10 @@ func runSet(cmd *cobra.Command, args []string) error {
 	case "project":
 		config.Cfg.DefaultProject = value
 	case "output":
+		if err := output.ValidateFormat(value); err != nil {
+			return err
+		}
+		value = output.NormalizeFormat(value)
 		config.Cfg.OutputFormat = value
 	case "api_host":
 		config.Cfg.APIHost = value
