@@ -97,7 +97,7 @@ func init() {
 	IssueCmd.AddCommand(searchCmd)
 
 	// List flags
-	listCmd.Flags().StringVarP(&stateFilter, "state", "s", "", "Filter by state (backlog, todo, in-progress, done)")
+	listCmd.Flags().StringVarP(&stateFilter, "state", "s", "", "Filter by state ID")
 	listCmd.Flags().StringVar(&assigneeFilter, "assignee", "", "Filter by assignee ID")
 	listCmd.Flags().IntVarP(&perPage, "limit", "l", 20, "Number of issues to show per page")
 
@@ -106,15 +106,15 @@ func init() {
 	createCmd.Flags().StringVarP(&issueDescription, "description", "d", "", "Issue description")
 	createCmd.Flags().StringVarP(&issuePriority, "priority", "p", "medium", "Issue priority (none, low, medium, high, urgent)")
 	createCmd.Flags().StringSliceVarP(&issueAssignees, "assignee", "a", nil, "Assignee ID(s)")
-	createCmd.Flags().StringSliceVar(&issueLabels, "label", nil, "Label(s)")
+	createCmd.Flags().StringSliceVar(&issueLabels, "label", nil, "Label ID(s)")
 
 	// Edit flags
 	editCmd.Flags().StringVarP(&issueTitle, "title", "t", "", "New title")
 	editCmd.Flags().StringVarP(&issueDescription, "description", "d", "", "New description")
 	editCmd.Flags().StringVar(&issuePriority, "priority", "", "New priority (none, low, medium, high, urgent)")
-	editCmd.Flags().StringVar(&issueState, "state", "", "New state (backlog, todo, in-progress, done)")
+	editCmd.Flags().StringVar(&issueState, "state", "", "New state ID")
 	editCmd.Flags().StringSliceVarP(&issueAssignees, "assignee", "a", nil, "New assignee ID(s)")
-	editCmd.Flags().StringSliceVar(&issueLabels, "label", nil, "New label(s)")
+	editCmd.Flags().StringSliceVar(&issueLabels, "label", nil, "New label ID(s)")
 }
 
 func runList(cmd *cobra.Command, args []string) error {
@@ -128,17 +128,8 @@ func runList(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Resolve state to UUID for consistent API behavior
-	resolvedState := stateFilter
-	if stateFilter != "" {
-		resolvedState, err = client.ResolveState(projectID, stateFilter)
-		if err != nil {
-			return fmt.Errorf("failed to resolve state '%s': %w", stateFilter, err)
-		}
-	}
-
 	opts := api.IssueListOptions{
-		State:    resolvedState,
+		State:    stateFilter,
 		Assignee: assigneeFilter,
 		Limit:    perPage,
 	}
@@ -259,17 +250,12 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		assignees = []string{config.Cfg.DefaultAssignee}
 	}
 
-	resolvedLabels, err := client.ResolveLabels(projectID, issueLabels)
-	if err != nil {
-		return fmt.Errorf("failed to resolve labels: %w", err)
-	}
-
 	req := plane.CreateIssueRequest{
 		Name:            issueTitle,
 		DescriptionHTML: renderDescriptionHTML(issueDescription),
 		Priority:        issuePriority,
 		Assignees:       assignees,
-		Labels:          resolvedLabels,
+		Labels:          issueLabels,
 	}
 
 	issue, err := client.CreateIssue(projectID, req)
@@ -338,21 +324,13 @@ func runEdit(cmd *cobra.Command, args []string) error {
 			req.Priority = issuePriority
 		}
 		if issueState != "" {
-			resolvedState, err := client.ResolveState(projectID, issueState)
-			if err != nil {
-				return fmt.Errorf("failed to resolve state: %w", err)
-			}
-			req.State = resolvedState
+			req.State = issueState
 		}
 		if len(issueAssignees) > 0 {
 			req.Assignees = issueAssignees
 		}
 		if len(issueLabels) > 0 {
-			resolvedLabels, err := client.ResolveLabels(projectID, issueLabels)
-			if err != nil {
-				return fmt.Errorf("failed to resolve labels: %w", err)
-			}
-			req.Labels = resolvedLabels
+			req.Labels = issueLabels
 		}
 	}
 

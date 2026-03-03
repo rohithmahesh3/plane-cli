@@ -77,19 +77,19 @@ func getGlobalFlags() string {
 func getIssueCommands() string {
 	return `## Issue (aliases: i, issues, ticket)
 ` + "```" + `
-plane-cli issue list [--state <name:text>] [--assignee <id:uuid>]
+plane-cli issue list [--state <id:uuid>] [--assignee <id:uuid>]
                  [--limit <count:int>]
 
 plane-cli issue view <id:seq_id|uuid>
 
 plane-cli issue create [--title <text>] [--description <markdown:text>]
                    [--priority <enum:none|low|medium|high|urgent>]
-                   [--assignee <id:uuid>...] [--label <text>...]
+                   [--assignee <id:uuid>...] [--label <id:uuid>...]
 
 plane-cli issue edit <id:seq_id|uuid> [--title <text>] [--description <markdown:text>]
                  [--priority <enum:none|low|medium|high|urgent>]
-                 [--state <enum:backlog|todo|in-progress|done>]
-                 [--assignee <id:uuid>...] [--label <text>...]
+                 [--state <id:uuid>]
+                 [--assignee <id:uuid>...] [--label <id:uuid>...]
 
 plane-cli issue delete <id:seq_id|uuid>
 plane-cli issue search <query:text>
