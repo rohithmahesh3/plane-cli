@@ -2,6 +2,7 @@ package issue
 
 import (
 	"bytes"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -11,6 +12,8 @@ import (
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/renderer/html"
 )
+
+var codeBlockPattern = regexp.MustCompile(`(?s)<pre><code([^>]*)>(.*?)</code></pre>`)
 
 func resolveIssue(client *api.Client, projectID, ref string) (*plane.Issue, error) {
 	if seqID, err := strconv.Atoi(strings.TrimSpace(ref)); err == nil {
@@ -92,5 +95,23 @@ func renderDescriptionHTML(input string) string {
 		return "<p>" + normalized + "</p>"
 	}
 
-	return buf.String()
+	return normalizeCodeBlockBlankLines(buf.String())
+}
+
+func normalizeCodeBlockBlankLines(rendered string) string {
+	return codeBlockPattern.ReplaceAllStringFunc(rendered, func(block string) string {
+		matches := codeBlockPattern.FindStringSubmatch(block)
+		if len(matches) != 3 {
+			return block
+		}
+
+		lines := strings.Split(matches[2], "\n")
+		for i := 0; i < len(lines)-1; i++ {
+			if lines[i] == "" {
+				lines[i] = "<br />"
+			}
+		}
+
+		return "<pre><code" + matches[1] + ">" + strings.Join(lines, "\n") + "</code></pre>"
+	})
 }

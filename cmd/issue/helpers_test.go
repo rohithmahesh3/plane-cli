@@ -37,6 +37,11 @@ func TestRenderDescriptionHTML(t *testing.T) {
 			input: "# Heading\n\n**bold text**\n\n- item 1\n- item 2",
 			want:  "<h1>Heading</h1>\n<p><strong>bold text</strong></p>\n<ul>\n<li>item 1</li>\n<li>item 2</li>\n</ul>\n",
 		},
+		{
+			name:  "fenced code block with blank line",
+			input: "```go\nfunc a() {\n    // one\n}\n\nfunc b() {\n    // two\n}\n```",
+			want:  "<pre><code class=\"language-go\">func a() {\n    // one\n}\n<br />\nfunc b() {\n    // two\n}\n</code></pre>\n",
+		},
 	}
 
 	for _, tt := range tests {
