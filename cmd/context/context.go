@@ -74,20 +74,7 @@ Commands below that include ` + "`[--output json]`" + ` support structured JSON 
 func getIssueCommands() string {
 	return `## Issue (aliases: i, issues, ticket)
 ` + "```" + `
-plane-cli issue list [--output json] [--state <id:uuid>] [--assignee <id:uuid>]
-                 [--limit <count:int>]
-
-plane-cli issue view [--output json] <id:seq_id|uuid>
-
-plane-cli issue create [--title <text>] [--description <markdown:text>]
-                   [--priority <enum:none|low|medium|high|urgent>]
-                   [--assignee <id:uuid>...] [--label <id:uuid>...]
-
-plane-cli issue edit <id:seq_id|uuid> [--title <text>] [--description <markdown:text>]
-                 [--priority <enum:none|low|medium|high|urgent>]
-                 [--state <id:uuid>]
-                 [--assignee <id:uuid>...] [--label <id:uuid>...]
-
+` + getIssueQuickStartCommands() + `
 plane-cli issue delete <id:seq_id|uuid>
 plane-cli issue search [--output json] <query:text>
 
@@ -124,6 +111,27 @@ plane-cli issue activity view [--output json] <issue-id:seq_id|uuid> <activity-i
 ` + "```" + `
 
 `
+}
+
+func getIssueQuickStartCommands() string {
+	return `plane-cli issue list [--output json] [--state <id:uuid>] [--assignee <id:uuid>]
+                 [--limit <count:int>]
+
+plane-cli issue view [--output json] <id:seq_id|uuid>
+
+plane-cli issue create [--title <text>] [--description <markdown:text>]
+                   [--priority <enum:none|low|medium|high|urgent>]
+                   [--assignee <id:uuid>...] [--label <id:uuid>...]
+
+plane-cli issue edit <id:seq_id|uuid> [--title <text>] [--description <markdown:text>]
+                 [--priority <enum:none|low|medium|high|urgent>]
+                 [--state <id:uuid>]
+                 [--assignee <id:uuid>...] [--label <id:uuid>...]
+`
+}
+
+func GetIssueQuickStartCommands() string {
+	return getIssueQuickStartCommands()
 }
 
 func getModuleCommands() string {

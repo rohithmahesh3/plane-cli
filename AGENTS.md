@@ -40,10 +40,10 @@ The Plane CLI provides command-line access to your Plane workspace for issue tra
 ### Quick Start - Issue Management
 
 ```bash
-plane-cli issue list [--state <id:uuid>] [--assignee <id:uuid>]
+plane-cli issue list [--output json] [--state <id:uuid>] [--assignee <id:uuid>]
                  [--limit <count:int>]
 
-plane-cli issue view <id:seq_id|uuid>
+plane-cli issue view [--output json] <id:seq_id|uuid>
 
 plane-cli issue create [--title <text>] [--description <markdown:text>]
                    [--priority <enum:none|low|medium|high|urgent>]
@@ -53,6 +53,7 @@ plane-cli issue edit <id:seq_id|uuid> [--title <text>] [--description <markdown:
                  [--priority <enum:none|low|medium|high|urgent>]
                  [--state <id:uuid>]
                  [--assignee <id:uuid>...] [--label <id:uuid>...]
+
 ```
 
 ### Full Command Reference
