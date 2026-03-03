@@ -77,19 +77,19 @@ func getGlobalFlags() string {
 func getIssueCommands() string {
 	return `## Issue (aliases: i, issues, ticket)
 ` + "```" + `
-plane-cli issue list [--state <name:text>] [--assignee <@username:text>]
+plane-cli issue list [--state <name:text>] [--assignee <id:uuid>]
                  [--limit <count:int>]
 
 plane-cli issue view <id:seq_id|uuid>
 
-plane-cli issue create [--title <text>] [--description <text>]
+plane-cli issue create [--title <text>] [--description <markdown:text>]
                    [--priority <enum:none|low|medium|high|urgent>]
-                   [--assignee <@username:text>...] [--label <text>...]
+                   [--assignee <id:uuid>...] [--label <text>...]
 
-plane-cli issue edit <id:seq_id|uuid> [--title <text>] [--description <text>]
+plane-cli issue edit <id:seq_id|uuid> [--title <text>] [--description <markdown:text>]
                  [--priority <enum:none|low|medium|high|urgent>]
                  [--state <enum:backlog|todo|in-progress|done>]
-                 [--assignee <@username:text>...] [--label <text>...]
+                 [--assignee <id:uuid>...] [--label <text>...]
 
 plane-cli issue delete <id:seq_id|uuid>
 plane-cli issue search <query:text>
@@ -108,10 +108,10 @@ plane-cli issue link delete <issue-id:seq_id|uuid> <link-id:uuid>
 # Issue Time Tracking
 plane-cli issue time list <issue-id:seq_id|uuid>
 plane-cli issue time log <issue-id:seq_id|uuid> <duration:minutes|1h30m>
-                     [--description <text>]
+                     [--description <markdown:text>]
 plane-cli issue time total <issue-id:seq_id|uuid>
 plane-cli issue time edit <issue-id:seq_id|uuid> <worklog-id:uuid>
-                      [--description <text>] [--duration <minutes|1h30m>]
+                      [--description <markdown:text>] [--duration <minutes|1h30m>]
 plane-cli issue time delete <issue-id:seq_id|uuid> <worklog-id:uuid>
 
 # Issue Attachments
@@ -134,9 +134,9 @@ func getModuleCommands() string {
 ` + "```" + `
 plane-cli module list [--archived]
 plane-cli module view <id:uuid>
-plane-cli module create [--name <text>] [--description <text>]
+plane-cli module create [--name <text>] [--description <markdown:text>]
                     [--status <enum:backlog|planned|in-progress|paused|completed|cancelled>]
-plane-cli module edit <id:uuid> [--name <text>] [--description <text>] [--status <enum:...>]
+plane-cli module edit <id:uuid> [--name <text>] [--description <markdown:text>] [--status <enum:...>]
 plane-cli module delete <id:uuid>
 plane-cli module archive <id:uuid>
 plane-cli module issues <id:uuid>
@@ -152,10 +152,10 @@ func getStateCommands() string {
 ` + "```" + `
 plane-cli state list
 plane-cli state view <id:uuid>
-plane-cli state create [--name <text>] [--description <text>]
+plane-cli state create [--name <text>] [--description <markdown:text>]
                    [--color <hex:#RRGGBB>]
                    [--group <enum:backlog|unstarted|started|completed|cancelled>]
-plane-cli state edit <id:uuid> [--name <text>] [--description <text>]
+plane-cli state edit <id:uuid> [--name <text>] [--description <markdown:text>]
                  [--color <hex>] [--group <enum:...>]
 plane-cli state delete <id:uuid>
 ` + "```" + `
@@ -168,8 +168,8 @@ func getLabelCommands() string {
 ` + "```" + `
 plane-cli label list
 plane-cli label view <id:uuid>
-plane-cli label create [--name <text>] [--description <text>] [--color <hex:#RRGGBB>]
-plane-cli label edit <id:uuid> [--name <text>] [--description <text>] [--color <hex>]
+plane-cli label create [--name <text>] [--description <markdown:text>] [--color <hex:#RRGGBB>]
+plane-cli label edit <id:uuid> [--name <text>] [--description <markdown:text>] [--color <hex>]
 plane-cli label delete <id:uuid>
 ` + "```" + `
 
@@ -192,7 +192,7 @@ func getTypeCommands() string {
 	return `## Type (aliases: issue-type)
 ` + "```" + `
 plane-cli type list
-plane-cli type create [--name <text>] [--description <text>]
+plane-cli type create [--name <text>] [--description <markdown:text>]
 plane-cli type delete <id:uuid>
 ` + "```" + `
 
@@ -204,9 +204,9 @@ func getCycleCommands() string {
 ` + "```" + `
 plane-cli cycle list [--archived]
 plane-cli cycle view <id:uuid>
-plane-cli cycle create [--name <text>] [--description <text>]
+plane-cli cycle create [--name <text>] [--description <markdown:text>]
                    [--start-date <YYYY-MM-DD>] [--end-date <YYYY-MM-DD>]
-plane-cli cycle edit <id:uuid> [--name <text>] [--description <text>]
+plane-cli cycle edit <id:uuid> [--name <text>] [--description <markdown:text>]
                  [--start-date <YYYY-MM-DD>] [--end-date <YYYY-MM-DD>]
 plane-cli cycle delete <id:uuid>
 plane-cli cycle archive <id:uuid>

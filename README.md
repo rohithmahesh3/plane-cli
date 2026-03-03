@@ -150,7 +150,7 @@ plane-cli issue list
 
 # List with filters
 plane-cli issue list --state backlog
-plane-cli issue list --assignee @alice
+plane-cli issue list --assignee <assignee-id>
 
 # View issue details (supports sequence ID or UUID)
 plane-cli issue view 123
@@ -158,12 +158,12 @@ plane-cli issue view uuid-here
 
 # Create an issue
 plane-cli issue create --title "Bug fix" --priority high
-plane-cli issue create -t "Feature request" -d "Description" -p medium -a @bob
+plane-cli issue create -t "Feature request" -d "Description" -p medium -a <assignee-id>
 
 # Edit an issue
 plane-cli issue edit 123 --state done
-plane-cli issue edit 123 --priority urgent --assignee @alice
-plane-cli issue edit 123 --assignee @bob --label bug,urgent
+plane-cli issue edit 123 --priority urgent --assignee <assignee-id>
+plane-cli issue edit 123 --assignee <assignee-id> --label bug,urgent
 
 # Delete an issue
 plane-cli issue delete 123

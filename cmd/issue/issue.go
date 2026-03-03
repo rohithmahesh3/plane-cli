@@ -40,7 +40,7 @@ var listCmd = &cobra.Command{
 Examples:
   plane-cli issue list
   plane-cli issue list --state backlog
-  plane-cli issue list --assignee @alice`,
+  plane-cli issue list --assignee <assignee-id>`,
 	RunE: runList,
 }
 
@@ -98,14 +98,14 @@ func init() {
 
 	// List flags
 	listCmd.Flags().StringVarP(&stateFilter, "state", "s", "", "Filter by state (backlog, todo, in-progress, done)")
-	listCmd.Flags().StringVar(&assigneeFilter, "assignee", "", "Filter by assignee (@username or 'me')")
+	listCmd.Flags().StringVar(&assigneeFilter, "assignee", "", "Filter by assignee ID")
 	listCmd.Flags().IntVarP(&perPage, "limit", "l", 20, "Number of issues to show per page")
 
 	// Create flags
 	createCmd.Flags().StringVarP(&issueTitle, "title", "t", "", "Issue title")
 	createCmd.Flags().StringVarP(&issueDescription, "description", "d", "", "Issue description")
 	createCmd.Flags().StringVarP(&issuePriority, "priority", "p", "medium", "Issue priority (none, low, medium, high, urgent)")
-	createCmd.Flags().StringSliceVarP(&issueAssignees, "assignee", "a", nil, "Assignee(s) (@username)")
+	createCmd.Flags().StringSliceVarP(&issueAssignees, "assignee", "a", nil, "Assignee ID(s)")
 	createCmd.Flags().StringSliceVar(&issueLabels, "label", nil, "Label(s)")
 
 	// Edit flags
@@ -113,7 +113,7 @@ func init() {
 	editCmd.Flags().StringVarP(&issueDescription, "description", "d", "", "New description")
 	editCmd.Flags().StringVar(&issuePriority, "priority", "", "New priority (none, low, medium, high, urgent)")
 	editCmd.Flags().StringVar(&issueState, "state", "", "New state (backlog, todo, in-progress, done)")
-	editCmd.Flags().StringSliceVarP(&issueAssignees, "assignee", "a", nil, "New assignee(s) (@username)")
+	editCmd.Flags().StringSliceVarP(&issueAssignees, "assignee", "a", nil, "New assignee ID(s)")
 	editCmd.Flags().StringSliceVar(&issueLabels, "label", nil, "New label(s)")
 }
 
@@ -128,7 +128,7 @@ func runList(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Resolve state and assignee to UUIDs for consistent API behavior
+	// Resolve state to UUID for consistent API behavior
 	resolvedState := stateFilter
 	if stateFilter != "" {
 		resolvedState, err = client.ResolveState(projectID, stateFilter)
@@ -137,27 +137,9 @@ func runList(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	resolvedAssignee := assigneeFilter
-	if assigneeFilter != "" {
-		// Handle special case "me" for current user
-		if assigneeFilter == "me" {
-			// Keep as "me" - API supports this special value
-			resolvedAssignee = assigneeFilter
-		} else {
-			// Resolve username to UUID
-			assignees, err := client.ResolveAssignees(projectID, []string{assigneeFilter})
-			if err != nil {
-				return fmt.Errorf("failed to resolve assignee '%s': %w", assigneeFilter, err)
-			}
-			if len(assignees) > 0 {
-				resolvedAssignee = assignees[0]
-			}
-		}
-	}
-
 	opts := api.IssueListOptions{
 		State:    resolvedState,
-		Assignee: resolvedAssignee,
+		Assignee: assigneeFilter,
 		Limit:    perPage,
 	}
 
@@ -277,11 +259,6 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		assignees = []string{config.Cfg.DefaultAssignee}
 	}
 
-	resolvedAssignees, err := client.ResolveAssignees(projectID, assignees)
-	if err != nil {
-		return fmt.Errorf("failed to resolve assignees: %w", err)
-	}
-
 	resolvedLabels, err := client.ResolveLabels(projectID, issueLabels)
 	if err != nil {
 		return fmt.Errorf("failed to resolve labels: %w", err)
@@ -291,7 +268,7 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		Name:            issueTitle,
 		DescriptionHTML: renderDescriptionHTML(issueDescription),
 		Priority:        issuePriority,
-		Assignees:       resolvedAssignees,
+		Assignees:       assignees,
 		Labels:          resolvedLabels,
 	}
 
@@ -368,11 +345,7 @@ func runEdit(cmd *cobra.Command, args []string) error {
 			req.State = resolvedState
 		}
 		if len(issueAssignees) > 0 {
-			resolvedAssignees, err := client.ResolveAssignees(projectID, issueAssignees)
-			if err != nil {
-				return fmt.Errorf("failed to resolve assignees: %w", err)
-			}
-			req.Assignees = resolvedAssignees
+			req.Assignees = issueAssignees
 		}
 		if len(issueLabels) > 0 {
 			resolvedLabels, err := client.ResolveLabels(projectID, issueLabels)
