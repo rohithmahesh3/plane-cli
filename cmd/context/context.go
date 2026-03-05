@@ -246,3 +246,16 @@ plane-cli workspace members [--output json] [--search <text>] [--exact] [--limit
 
 `
 }
+
+// Exported wrapper functions for use by inject command
+
+func GetGlobalFlags() string       { return getGlobalFlags() }
+func GetIssueCommands() string     { return getIssueCommands() }
+func GetProjectCommands() string   { return getProjectCommands() }
+func GetModuleCommands() string    { return getModuleCommands() }
+func GetStateCommands() string     { return getStateCommands() }
+func GetLabelCommands() string     { return getLabelCommands() }
+func GetTypeCommands() string      { return getTypeCommands() }
+func GetCycleCommands() string     { return getCycleCommands() }
+func GetWorkspaceCommands() string { return getWorkspaceCommands() }
+func GetIntakeCommands() string    { return getIntakeCommands() }
