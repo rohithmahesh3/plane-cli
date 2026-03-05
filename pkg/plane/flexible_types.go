@@ -218,3 +218,17 @@ func (fi *FlexibleInt64) UnmarshalJSON(data []byte) error {
 func (fi FlexibleInt64) Int64() int64 {
 	return int64(fi)
 }
+
+// StateOutput represents a state for JSON/YAML output with state_id and state_name
+type StateOutput struct {
+	ID   string `json:"state_id"`
+	Name string `json:"state_name"`
+}
+
+// String implements fmt.Stringer for table output
+func (s StateOutput) String() string {
+	if s.Name == "" {
+		return "-"
+	}
+	return s.Name
+}

@@ -147,12 +147,12 @@ func runList(cmd *cobra.Command, args []string) error {
 	formatter := output.NewFormatter(config.Cfg.OutputFormat, false)
 
 	type issueOutput struct {
-		ID       string `table:"ID" json:"id"`
-		Sequence int    `table:"#" json:"sequence_id"`
-		Title    string `table:"TITLE" json:"title"`
-		State    string `table:"STATE" json:"state_name"`
-		Priority string `table:"PRIORITY" json:"priority"`
-		Assignee string `table:"ASSIGNEE" json:"assignee"`
+		ID       string            `table:"ID" json:"id"`
+		Sequence int               `table:"#" json:"sequence_id"`
+		Title    string            `table:"TITLE" json:"title"`
+		State    plane.StateOutput `table:"STATE" json:"state"`
+		Priority string            `table:"PRIORITY" json:"priority"`
+		Assignee string            `table:"ASSIGNEE" json:"assignee"`
 	}
 
 	var outputs []issueOutput
@@ -167,16 +167,14 @@ func runList(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		stateName := issue.State.Name
-		if stateName == "" {
-			stateName = "-"
-		}
-
 		outputs = append(outputs, issueOutput{
 			ID:       issue.ID,
 			Sequence: issue.SequenceID,
 			Title:    issue.Name,
-			State:    stateName,
+			State: plane.StateOutput{
+				ID:   issue.State.ID,
+				Name: issue.State.Name,
+			},
 			Priority: issue.Priority,
 			Assignee: assignee,
 		})
@@ -405,25 +403,23 @@ func runSearch(cmd *cobra.Command, args []string) error {
 	formatter := output.NewFormatter(config.Cfg.OutputFormat, false)
 
 	type issueOutput struct {
-		ID       string `table:"ID" json:"id"`
-		Sequence int    `table:"#" json:"sequence_id"`
-		Title    string `table:"TITLE" json:"title"`
-		State    string `table:"STATE" json:"state_name"`
-		Priority string `table:"PRIORITY" json:"priority"`
+		ID       string            `table:"ID" json:"id"`
+		Sequence int               `table:"#" json:"sequence_id"`
+		Title    string            `table:"TITLE" json:"title"`
+		State    plane.StateOutput `table:"STATE" json:"state"`
+		Priority string            `table:"PRIORITY" json:"priority"`
 	}
 
 	var outputs []issueOutput
 	for _, issue := range issues {
-		stateName := issue.State.Name
-		if stateName == "" {
-			stateName = "-"
-		}
-
 		outputs = append(outputs, issueOutput{
 			ID:       issue.ID,
 			Sequence: issue.SequenceID,
 			Title:    issue.Name,
-			State:    stateName,
+			State: plane.StateOutput{
+				ID:   issue.State.ID,
+				Name: issue.State.Name,
+			},
 			Priority: issue.Priority,
 		})
 	}
