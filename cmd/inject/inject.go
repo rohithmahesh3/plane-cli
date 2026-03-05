@@ -39,7 +39,7 @@ var InjectCmd = &cobra.Command{
 	Long: `Inject plane-cli context documentation into agent files (AGENTS.md, GEMINI.md, CLAUDE.md, CURSOR.md).
 
 This command updates or creates a section in the specified files with:
-- Quick start commands for issue management
+- Issue command reference (plus optional modules via flags)
 - Reference to plane-cli context for full documentation
 - Configuration options
 
@@ -256,10 +256,14 @@ plane-cli context --workspace --cycle --intake --project
 ### Available Context Options
 
 - ` + "`" + `--all` + "`" + ` - Include all modules
+- ` + "`" + `--project` + "`" + ` - Include project commands
+- ` + "`" + `--module` + "`" + ` - Include module commands
+- ` + "`" + `--state` + "`" + ` - Include state commands
+- ` + "`" + `--label` + "`" + ` - Include label commands
+- ` + "`" + `--type` + "`" + ` - Include type commands
 - ` + "`" + `--workspace` + "`" + ` - Include workspace commands
 - ` + "`" + `--cycle` + "`" + ` - Include cycle/sprint commands
 - ` + "`" + `--intake` + "`" + ` - Include intake commands
-- ` + "`" + `--project` + "`" + ` - Include project commands
 
 ### Important Notes
 
