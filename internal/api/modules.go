@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/rohithmahesh3/plane-cli/pkg/plane"
 )
@@ -93,7 +94,10 @@ func (c *Client) ListModuleIssues(projectID, moduleID string) ([]plane.Issue, er
 		Results []plane.Issue `json:"results"`
 	}
 
-	if err := c.Get(path, nil, &response); err != nil {
+	query := url.Values{}
+	query.Set("expand", "state")
+
+	if err := c.Get(path, query, &response); err != nil {
 		return nil, err
 	}
 

@@ -170,3 +170,56 @@ func TestArchiveCycle(t *testing.T) {
 		t.Fatalf("ArchiveCycle failed: %v", err)
 	}
 }
+
+func TestListCycleIssuesExpandsState(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			t.Errorf("Expected GET request, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/v1/workspaces/test-workspace/projects/test-project/cycles/cycle-123/cycle-issues/" {
+			t.Errorf("Unexpected path: %s", r.URL.Path)
+		}
+		if got := r.URL.Query().Get("expand"); got != "state" {
+			t.Errorf("Expected expand=state, got %q", got)
+		}
+
+		response := struct {
+			Results []plane.Issue `json:"results"`
+		}{
+			Results: []plane.Issue{
+				{
+					ID:         "issue-1",
+					SequenceID: 202,
+					Name:       "Cycle issue",
+					State: plane.FlexibleState{
+						ID:   "state-2",
+						Name: "In Progress",
+					},
+				},
+			},
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(response)
+	}))
+	defer server.Close()
+
+	client := &Client{
+		HTTPClient: server.Client(),
+		BaseURL:    server.URL,
+		APIKey:     "test-key",
+		Workspace:  "test-workspace",
+	}
+
+	issues, err := client.ListCycleIssues("test-project", "cycle-123")
+	if err != nil {
+		t.Fatalf("ListCycleIssues failed: %v", err)
+	}
+
+	if len(issues) != 1 {
+		t.Fatalf("Expected 1 issue, got %d", len(issues))
+	}
+	if issues[0].State.Name != "In Progress" {
+		t.Errorf("Expected state name 'In Progress', got %q", issues[0].State.Name)
+	}
+}

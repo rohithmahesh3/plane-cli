@@ -168,3 +168,56 @@ func TestArchiveModule(t *testing.T) {
 		t.Fatalf("ArchiveModule failed: %v", err)
 	}
 }
+
+func TestListModuleIssuesExpandsState(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			t.Errorf("Expected GET request, got %s", r.Method)
+		}
+		if r.URL.Path != "/api/v1/workspaces/test-workspace/projects/test-project/modules/module-123/module-issues/" {
+			t.Errorf("Unexpected path: %s", r.URL.Path)
+		}
+		if got := r.URL.Query().Get("expand"); got != "state" {
+			t.Errorf("Expected expand=state, got %q", got)
+		}
+
+		response := struct {
+			Results []plane.Issue `json:"results"`
+		}{
+			Results: []plane.Issue{
+				{
+					ID:         "issue-1",
+					SequenceID: 101,
+					Name:       "Module issue",
+					State: plane.FlexibleState{
+						ID:   "state-1",
+						Name: "Done",
+					},
+				},
+			},
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(response)
+	}))
+	defer server.Close()
+
+	client := &Client{
+		HTTPClient: server.Client(),
+		BaseURL:    server.URL,
+		APIKey:     "test-key",
+		Workspace:  "test-workspace",
+	}
+
+	issues, err := client.ListModuleIssues("test-project", "module-123")
+	if err != nil {
+		t.Fatalf("ListModuleIssues failed: %v", err)
+	}
+
+	if len(issues) != 1 {
+		t.Fatalf("Expected 1 issue, got %d", len(issues))
+	}
+	if issues[0].State.Name != "Done" {
+		t.Errorf("Expected state name 'Done', got %q", issues[0].State.Name)
+	}
+}

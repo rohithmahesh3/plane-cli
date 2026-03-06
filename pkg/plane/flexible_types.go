@@ -225,6 +225,20 @@ type StateOutput struct {
 	Name string `json:"state_name"`
 }
 
+// StateOutputFromIssue builds structured state output from an issue, with fallback
+// to state_name when state is returned as a UUID.
+func StateOutputFromIssue(issue Issue) StateOutput {
+	name := issue.State.Name
+	if name == "" {
+		name = issue.StateName
+	}
+
+	return StateOutput{
+		ID:   issue.State.ID,
+		Name: name,
+	}
+}
+
 // String implements fmt.Stringer for table output
 func (s StateOutput) String() string {
 	if s.Name == "" {

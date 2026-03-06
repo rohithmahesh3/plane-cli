@@ -171,10 +171,7 @@ func runList(cmd *cobra.Command, args []string) error {
 			ID:       issue.ID,
 			Sequence: issue.SequenceID,
 			Title:    issue.Name,
-			State: plane.StateOutput{
-				ID:   issue.State.ID,
-				Name: issue.State.Name,
-			},
+			State:    plane.StateOutputFromIssue(issue),
 			Priority: issue.Priority,
 			Assignee: assignee,
 		})
@@ -416,10 +413,7 @@ func runSearch(cmd *cobra.Command, args []string) error {
 			ID:       issue.ID,
 			Sequence: issue.SequenceID,
 			Title:    issue.Name,
-			State: plane.StateOutput{
-				ID:   issue.State.ID,
-				Name: issue.State.Name,
-			},
+			State:    plane.StateOutputFromIssue(issue),
 			Priority: issue.Priority,
 		})
 	}
