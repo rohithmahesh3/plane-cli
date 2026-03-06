@@ -206,35 +206,35 @@ func generateContent() string {
 
 The Plane CLI provides command-line access to your Plane workspace for issue tracking, project management, and team collaboration.
 
-`, markerStart, timestamp)
+	`, markerStart, timestamp)
 
 	// Always include full issue commands
-	content += contextcmd.GetIssueCommands()
+	content += withBashFence(contextcmd.GetIssueCommands())
 
 	// Optional modules
 	if includeAll || includeProject {
-		content += contextcmd.GetProjectCommands()
+		content += withBashFence(contextcmd.GetProjectCommands())
 	}
 	if includeAll || includeModule {
-		content += contextcmd.GetModuleCommands()
+		content += withBashFence(contextcmd.GetModuleCommands())
 	}
 	if includeAll || includeState {
-		content += contextcmd.GetStateCommands()
+		content += withBashFence(contextcmd.GetStateCommands())
 	}
 	if includeAll || includeLabel {
-		content += contextcmd.GetLabelCommands()
+		content += withBashFence(contextcmd.GetLabelCommands())
 	}
 	if includeAll || includeType {
-		content += contextcmd.GetTypeCommands()
+		content += withBashFence(contextcmd.GetTypeCommands())
 	}
 	if includeAll || includeCycle {
-		content += contextcmd.GetCycleCommands()
+		content += withBashFence(contextcmd.GetCycleCommands())
 	}
 	if includeAll || includeWorkspace {
-		content += contextcmd.GetWorkspaceCommands()
+		content += withBashFence(contextcmd.GetWorkspaceCommands())
 	}
 	if includeAll || includeIntake {
-		content += contextcmd.GetIntakeCommands()
+		content += withBashFence(contextcmd.GetIntakeCommands())
 	}
 
 	// Keep the original sections for reference and tips
@@ -293,6 +293,13 @@ EOF
 
 	content += markerEnd
 	return content
+}
+
+func withBashFence(section string) string {
+	if strings.Contains(section, "```bash") {
+		return section
+	}
+	return strings.Replace(section, "```\n", "```bash\n", 1)
 }
 
 // InjectIntoFiles is called from init command

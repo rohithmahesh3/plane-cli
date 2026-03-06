@@ -39,3 +39,12 @@ func TestInjectCommandDescriptionReflectsCurrentBehavior(t *testing.T) {
 	assert.Contains(t, InjectCmd.Long, "Issue command reference (plus optional modules via flags)")
 	assert.NotContains(t, InjectCmd.Long, "Quick start commands for issue management")
 }
+
+func TestGenerateContentUsesBashFenceForIssueCommands(t *testing.T) {
+	resetModuleFlags()
+	t.Cleanup(resetModuleFlags)
+
+	content := generateContent()
+
+	assert.Contains(t, content, "## Issue (aliases: i, issues, ticket)\n```bash")
+}
